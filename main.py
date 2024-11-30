@@ -14,10 +14,14 @@ from kivy.uix.button import Button
 from kivy.uix.camera import Camera
 from kivy.uix.image import Image
 
+from plyer import permission
+
+
 # Import OpenCV
-import cv2 , datetime
-import numpy as np
-from PIL import Image as PILImage
+# import cv2 
+import datetime
+# import numpy as np
+# from PIL import Image as PILImage
 
 from kivy.core.window import Window
 
@@ -25,7 +29,7 @@ from kivy.core.window import Window
 global default_pic 
 global time
 # time = datetime.datetime.now()
-default_pic = 'ico_not_found.png'
+default_pic = '.ico_not_found.png'
 
 class ImageCaptureApp(App):
     def build(self):
@@ -71,7 +75,10 @@ class ImageCaptureApp(App):
 
 if __name__ == '__main__':
     # Set the window size
-    Window.size = (800, 600)
+    # Window.size = (800, 600)
+
+    if permission.check_permission('CAMERA') != 'granted':
+            permission.request_permission('CAMERA')
     
     # default_pic = 'captured_image'
     print(default_pic)

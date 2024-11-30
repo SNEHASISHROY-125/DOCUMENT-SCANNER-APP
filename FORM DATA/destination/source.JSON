@@ -1,0 +1,19 @@
+{"NAME" : "Sachin",
+        "AGE" : 40,
+        "ADDRESS" : {
+            "STREET" : "Sachin Street",
+            "CITY" : "Mumbai",
+            "STATE" : "Maharashtra",
+            "PINCODE" : 400001
+        },
+        "CONTACTS" : [
+            {
+                "TYPE" : "HOME",
+                "NUMBER" : 1234567890
+            },
+            {
+                "TYPE" : "OFFICE",
+                "NUMBER" : 9876543210
+            }
+        ]
+    }

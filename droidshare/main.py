@@ -14,7 +14,7 @@ from android_permissions import AndroidPermissions
 from androidstorage4kivy import SharedStorage, Chooser, ShareSheet
 
 class ShareSendExample(App):
-
+    uris = []
     def build(self):
         self.test_uri = None
         Window.bind(on_keyboard = self.quit_app)
@@ -71,7 +71,12 @@ class ShareSendExample(App):
     
     def button5_pressed(self,b):
         try:
-            ShareSheet().share_file('ico.png')
+            # create a file in Private storage
+            filename = join(SharedStorage().get_cache_dir(),'ico.png')
+            SharedStorage().copy_to_shared(filename)
+            # add to uris list
+            self.uris.append(filename)
+            ShareSheet().share_file(filename)
         except Exception as e:
             print(e)
         self.button_reset(b)
@@ -82,6 +87,7 @@ class ShareSendExample(App):
         if key == 27:
             if self.test_uri:
                 SharedStorage().delete_file(self.test_uri)
+                [SharedStorage().delete_file(uri) for uri in self.uris]
             mActivity.finishAndRemoveTask() 
             return True   
         else:

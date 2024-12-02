@@ -8,7 +8,9 @@ from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from os.path import join
-from android import mActivity
+from kivy.utils import platform
+if platform == 'android':
+    from android import mActivity
 from android_permissions import AndroidPermissions
 
 from androidstorage4kivy import SharedStorage, Chooser, ShareSheet
@@ -72,8 +74,8 @@ class ShareSendExample(App):
     def button5_pressed(self,b):
         try:
             # create a file in Private storage
-            filename = join(SharedStorage().get_cache_dir(),'ico.png')
-            SharedStorage().copy_to_shared(filename)
+            # filename = join(SharedStorage().get_cache_dir(),'ico.png')
+            filename = SharedStorage().copy_to_shared('ico.png')
             # add to uris list
             self.uris.append(filename)
             ShareSheet().share_file(filename)
@@ -87,7 +89,7 @@ class ShareSendExample(App):
         if key == 27:
             if self.test_uri:
                 SharedStorage().delete_file(self.test_uri)
-                [SharedStorage().delete_file(uri) for uri in self.uris]
+                [SharedStorage().delete_shared(uri) for uri in self.uris]
             mActivity.finishAndRemoveTask() 
             return True   
         else:

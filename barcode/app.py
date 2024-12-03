@@ -7,7 +7,12 @@ from kivymd.uix.recycleview import MDRecycleView
 from kivymd.uix.list import TwoLineAvatarIconListItem, IconLeftWidget, IconRightWidget
 from kivymd.uix.card import MDCard
 from kivy.uix.image import Image
-from kivymd.uix.button import MDRaisedButton, MDIconButton
+from kivymd.uix.selectioncontrol import MDSwitch
+from kivymd.uix.button import MDRaisedButton, MDIconButton, MDFlatButton
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.label import MDLabel
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.textfield import MDTextField
 from kivy.properties import StringProperty
 
 # from androidstorage4kivy import SharedStorage, Chooser, ShareSheet
@@ -32,6 +37,33 @@ class CustomCard(MDCard):
 
 file_list = []
 
+DIALOG_KV = '''
+MDBoxLayout:
+    orientation: 'vertical'
+    padding: dp(10)
+    spacing: dp(10)
+    adaptive_height: True  # This ensures dynamic height adjustment
+
+    MDTextField:
+        id: barcode_textfield
+        hint_text: "AACB1978432" if not dialog_switch.active else "https://www.cb28.com/cp=9?d=1"
+
+    MDBoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: self.minimum_height
+        spacing: dp(10)
+
+        MDLabel:
+            text: "Create QR code"
+            adaptive_height: True
+
+        MDSwitch:
+            id: dialog_switch
+            on_active: app.on_switch_active(self, self.active)
+'''
+
+
 class CustomRecycleView(MDRecycleView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -43,6 +75,8 @@ class CustomRecycleView(MDRecycleView):
 
 
 class MyApp(MDApp):
+    dialog = None
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.title = "Barcode"
@@ -55,6 +89,32 @@ class MyApp(MDApp):
                 file_list.append(os.path.join(root, file))
 
         print(file_list)
+
+    def generate_codes(self):
+        # dialog
+        if not self.dialog:
+            self.dialog = MDDialog(
+                title="Create Barcode",
+                type="custom",
+                content_cls=Builder.load_string(DIALOG_KV),
+                buttons=[
+                    MDFlatButton(
+                        text="CANCEL",
+                        on_release=lambda x: self.dialog.dismiss()
+                    ),
+                    MDFlatButton(
+                        text="ADD",
+                        on_release=lambda x: generate_barcode(self.dialog.content_cls.ids.barcode_textfield.text) if not self.dialog.content_cls.ids.dialog_switch.active else generate_qr_code(self.dialog.content_cls.ids.barcode_textfield.text)
+                    ),
+                ],
+            )
+        self.dialog.open()
+
+    def on_switch_active(self, instance, value):
+        # dialog.title = self.dialog.children[0].children[-1].text
+        # set 
+        self.dialog.children[0].children[-1].text = "Create QR code" if value else "Create Barcode"
+        print(f"Switch is now {'on' if value else 'off'}")
 
     def on_tab_switch(self, instance_tabs, instance_tab, instance_tab_label,):
         screen = self.root.get_screen('home')
@@ -88,6 +148,12 @@ class MyApp(MDApp):
     def delete_file(self, file):
         os.remove(file)
         Clock.schedule_once(lambda dt : self.refresh_files() ,0.2)
+
+def generate_qr_code(code:any):
+    print('qr',code)
+
+def generate_barcode(code:any):
+    print(code)
 
 
 _app = MyApp()

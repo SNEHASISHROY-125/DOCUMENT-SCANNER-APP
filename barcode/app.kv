@@ -30,10 +30,16 @@ ScreenManager:
 
                 CustomRecycleView:
                     id: rv
+
+                MDFloatingActionButton:
+                    icon: "plus"
+                    md_bg_color: app.theme_cls.primary_color
+                    pos_hint: {'center_x': 0.7, 'center_y': 0.1}
+                    on_release: app.generate_codes()
         
             MDBottomNavigationItem:
                 name: 'scaner_tab'
-                text: "Document scaner"
+                text: "Document"
                 icon: "camera-iris"
                 badge_icon: ""
                 icon_color: app.theme_cls.primary_color

@@ -97,7 +97,7 @@ ScreenManager:
                 text: "Share"
                 theme_text_color: "Custom"
                 text_color: app.theme_cls.primary_color
-                on_release: app.root.current = 'settings'
+                on_release: app.share_file(root.ids.image.source)
             MDIconButton:
                 icon: "delete-variant"
                 text: "Delete"

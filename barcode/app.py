@@ -14,8 +14,18 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.textfield import MDTextField
 from kivy.properties import StringProperty
+from kivy.metrics import dp
+from kivy.utils import platform
+from kivymd.toast import toast as tst
 
-# from androidstorage4kivy import SharedStorage, Chooser, ShareSheet
+from kivy.config import Config
+Config.set('kivy', 'pause_on_minimize', '1')
+
+import codegen
+
+if platform == 'android':
+    from android import mActivity
+    from androidstorage4kivy import SharedStorage, Chooser, ShareSheet
 
 # create ./src folder
 if not os.path.exists('./src'):
@@ -76,6 +86,7 @@ class CustomRecycleView(MDRecycleView):
 
 class MyApp(MDApp):
     dialog = None
+    uris = []
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -89,6 +100,12 @@ class MyApp(MDApp):
                 file_list.append(os.path.join(root, file))
 
         print(file_list)
+
+    def toast(self,text:str, duration=1.0):
+        if platform == 'android':
+            tst(text, duration)
+        else:
+            tst(text, duration=duration) 
 
     def generate_codes(self):
         # dialog
@@ -104,7 +121,7 @@ class MyApp(MDApp):
                     ),
                     MDFlatButton(
                         text="ADD",
-                        on_release=lambda x: generate_barcode(self.dialog.content_cls.ids.barcode_textfield.text) if not self.dialog.content_cls.ids.dialog_switch.active else generate_qr_code(self.dialog.content_cls.ids.barcode_textfield.text)
+                        on_release=lambda x: self.generate_barcode(self.dialog.content_cls.ids.barcode_textfield.text) if not self.dialog.content_cls.ids.dialog_switch.active else self.generate_qr_code(self.dialog.content_cls.ids.barcode_textfield.text)
                     ),
                 ],
             )
@@ -132,8 +149,46 @@ class MyApp(MDApp):
     
     def on_start(self):
         self.refresh_files()
+        #
+        self._init_loading_widget()
+        #
+        if platform == 'android':
+            from android.permissions import request_permissions, Permission
+            request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
-    def refresh_files(self):
+    def on_pause(self):
+        return True
+    
+    def on_resume(self):
+        # Restore any data or state when the app resumes.
+        # Force a redraw
+        self.root.canvas.ask_update()
+
+    def on_stop(self):
+        pass
+
+    def quit_app(self,window,key,*args):
+        # back button/gesture quits app
+        if key == 27:
+            if self.test_uri:
+                # SharedStorage().delete_file(self.test_uri)
+                [SharedStorage().delete_shared(uri) for uri in self.uris]
+            mActivity.finishAndRemoveTask() 
+            return True   
+        else:
+            return False
+
+    def _init_loading_widget(self):
+        ''' Initialize the loading widget '''
+        # init the modal view
+        from kivy.uix.modalview import ModalView
+        from kivymd.uix.spinner import MDSpinner
+        global _modal
+        _modal  =   ModalView(size_hint=(.8, .8), auto_dismiss=False, background='', background_color=[0, 0, 0, 0])
+        _modal.add_widget(MDSpinner(line_width=dp(5.25), size_hint=(None, None), size=(120, 120), pos_hint={'center_x': .5, 'center_y': .5}, active=True))  # Load and play the GIF
+    
+
+    def refresh_files(self) -> list:
         file_list = []
         for root, dirs, files in os.walk('./src'):
             for file in files:
@@ -144,16 +199,71 @@ class MyApp(MDApp):
                 'image_source': x,
             } for x in file_list
         ]
+        return file_list
 
     def delete_file(self, file):
-        os.remove(file)
+        try:
+            os.remove(file)
+        except Exception as e:
+            print(e)
+            self.toast("Couldn't delete file")
+        self.toast("File deleted")
         Clock.schedule_once(lambda dt : self.refresh_files() ,0.2)
 
-def generate_qr_code(code:any):
-    print('qr',code)
+    def share_file(self, file:str):
+        if not os.path.exists(file):
+            self.toast("File not found")
+            return
+        
+        try:
+            if platform == 'android':
+                from android.permissions import request_permissions, Permission , check_permission
+                if not check_permission(Permission.READ_EXTERNAL_STORAGE) or not check_permission(Permission.WRITE_EXTERNAL_STORAGE):
+                    request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
-def generate_barcode(code:any):
-    print(code)
+            # create a file in Private storage
+            # filename = join(SharedStorage().get_cache_dir(),'ico.png')
+            filename = SharedStorage().copy_to_shared(file)
+            # add to uris list
+            self.uris.append(filename)
+            ShareSheet().share_file(filename)
+        except Exception as e:
+            print(e)
+            self.toast("Couldn't share file")
+
+    def generate_qr_code(self , code:str):
+        _modal.open()
+        _ = codegen.generate_qr_code(code)
+        # refresh the files
+        self.root.get_screen('home').ids.rv.data.insert(
+            0,
+            {
+            'image_source': _,
+            }
+        )
+        _ = None
+        Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
+        print('qr',code)
+
+    def generate_barcode(self,code:str):
+        _modal.open()
+        # check if code is valid
+        if len(code) ==12 and code.isdigit():
+            _=codegen.generate_ean13_barcode(code)
+        elif len(code) ==11 and code.isdigit():
+            _=codegen.generate_upc_barcode(code)
+        else:
+            _=codegen.generate_code128_barcode(code)
+        print(code)
+        # refresh the files
+        self.root.get_screen('home').ids.rv.data.insert(
+            0,
+            {
+            'image_source': _,
+            }
+        )
+        _ = None
+        Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
 
 
 _app = MyApp()

@@ -43,16 +43,41 @@ Usage:
 
 """
 
+'''
+EAN-13 Barcode
+    EAN-13 stands for "European Article Number" and is a 13-digit barcode standard.
+    It is widely used internationally for marking products often sold at retail points of sale.
+    The barcode consists of 12 digits of data and a single check digit.
+    The first two or three digits usually represent the country code, followed by the manufacturer code, product code, and a check digit.
+UPC Barcode
+UPC stands for "Universal Product Code" and is a barcode symbology used in the United States and Canada.
+The most common version is UPC-A, which consists of 12 digits.
+Similar to EAN-13, it includes a manufacturer code, product code, and a check digit.
+UPC barcodes are used for tracking trade items in stores.
+Code 128 Barcode
+Code 128 is a high-density linear barcode symbology.
+It can encode all 128 ASCII characters, making it versatile for various applications.
+Code 128 is used in logistics and transportation industries for tracking items through the supply chain.
+It is also used in healthcare and other industries where a large amount of data needs to be encoded in a small space.
+
+'''
+
+
+
 from io import BytesIO
 from barcode import EAN13, Code128, UPCA
 from barcode.writer import ImageWriter
 import qrcode
 from datetime import datetime
 
-def generate_ean13_barcode(data, output=f'src/ean13_barcode_{datetime.now().strftime("%Y%m%d%H%M%S")}.png'):
+def get_time() -> str:
+    return datetime.now().strftime("%Y%m%d%H%M%S")
+
+def generate_ean13_barcode(data, output=''):
     if len(data) != 12:
         raise ValueError("EAN-13 data must be 12 digits long")
     try:
+        output = output if output else f'src/ean13_barcode_{get_time()}.png'
         ean = EAN13(data, writer=ImageWriter())
         buffer = BytesIO()
         ean.write(buffer)
@@ -64,8 +89,9 @@ def generate_ean13_barcode(data, output=f'src/ean13_barcode_{datetime.now().strf
     except Exception as e:
         print(f"An error occurred while generating EAN-13 barcode: {e}")
 
-def generate_code128_barcode(data, output=f'src/code128_barcode_{datetime.now().strftime("%Y%m%d%H%M%S")}.png'):
+def generate_code128_barcode(data, output=''):
     try:
+        output = output if output else f'src/code128_barcode_{get_time()}.png'
         code128 = Code128(data, writer=ImageWriter())
         buffer = BytesIO()
         code128.write(buffer)
@@ -77,10 +103,11 @@ def generate_code128_barcode(data, output=f'src/code128_barcode_{datetime.now().
     except Exception as e:
         print(f"An error occurred while generating Code 128 barcode: {e}")
 
-def generate_upc_barcode(data, output=f'src/upc_barcode_{datetime.now().strftime("%Y%m%d%H%M%S")}.png'):
+def generate_upc_barcode(data, output=''):
     if len(data) != 11:
         raise ValueError("UPC-A data must be 11 digits long")
     try:
+        output = output if output else f'src/upc_barcode_{get_time()}.png'
         upc = UPCA(data, writer=ImageWriter())
         buffer = BytesIO()
         upc.write(buffer)
@@ -92,8 +119,9 @@ def generate_upc_barcode(data, output=f'src/upc_barcode_{datetime.now().strftime
     except Exception as e:
         print(f"An error occurred while generating UPC-A barcode: {e}")
 
-def generate_qr_code(data, output=f'src/qr/qr_code_{datetime.now().strftime("%Y%m%d%H%M%S")}.png'):
+def generate_qr_code(data, output=''):
     try:
+        output = output if output else f'src/qr/qr_code_{get_time()}.png'
         img = qrcode.make(data)
         buffer = BytesIO()
         img.save(buffer, format="PNG")

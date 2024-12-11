@@ -3,6 +3,7 @@
 /barcode/env
 /barcode/__pycache__
 /src
+/env
 /barcode/src
 /barcode/.vscode
 /barcode/kv

@@ -69,6 +69,7 @@ from barcode import EAN13, Code128, UPCA
 from barcode.writer import ImageWriter
 import qrcode
 from datetime import datetime
+from PIL import Image, ImageDraw, ImageFont
 
 def get_time() -> str:
     return datetime.now().strftime("%Y%m%d%H%M%S")
@@ -119,10 +120,39 @@ def generate_upc_barcode(data, output=''):
     except Exception as e:
         print(f"An error occurred while generating UPC-A barcode: {e}")
 
-def generate_qr_code(data, output=''):
+def generate_qr_code(data, description,output=''):
     try:
         output = output if output else f'src/qr/qr_code_{get_time()}.png'
-        img = qrcode.make(data)
+        
+        # Generate QR code
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(data)
+        qr.make(fit=True)
+        img = qr.make_image(fill='black', back_color='white')
+
+        # Add description
+        if description:
+            img = img.convert("RGBA")
+            width, height = img.size
+            new_height = height + 50  # Add space for description
+            new_img = Image.new("RGBA", (width, new_height), "WHITE")
+            new_img.paste(img, (0, 0))
+
+            draw = ImageDraw.Draw(new_img)
+            font = ImageFont.load_default()
+            text_bbox = draw.textbbox((0, 0), description, font=font)
+            text_width = text_bbox[2] - text_bbox[0]
+            text_height = text_bbox[3] - text_bbox[1]
+            text_position = ((width - text_width) // 2, height + 10)
+            draw.text(text_position, description, fill="black", font=font)
+            img = new_img
+
+        # Save image to buffer
         buffer = BytesIO()
         img.save(buffer, format="PNG")
         with open(output, 'wb') as f:

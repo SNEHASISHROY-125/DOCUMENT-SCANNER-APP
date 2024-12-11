@@ -1,4 +1,5 @@
 import os
+from threading import Thread
 from kivy.lang import Builder
 from kivy.clock import Clock , mainthread
 from kivy.uix.screenmanager import ScreenManager, Screen
@@ -17,7 +18,7 @@ from kivy.properties import StringProperty
 from kivy.metrics import dp
 from kivy.utils import platform
 from kivymd.toast import toast as tst
-
+from kivymd.utils.set_bars_colors import set_bars_colors
 from kivy.config import Config
 Config.set('kivy', 'pause_on_minimize', '1')
 
@@ -41,6 +42,12 @@ class HomeScreen(Screen):
 class SettingsScreen(Screen):
     pass
 
+class ScanerScreen(Screen):
+    pass
+
+class AdvancedQRScreen(Screen):
+    pass
+
 class CustomCard(MDCard):
     # icon = StringProperty()
     image_source = StringProperty()        
@@ -56,20 +63,44 @@ MDBoxLayout:
 
     MDTextField:
         id: barcode_textfield
-        hint_text: "AACB1978432" if not dialog_switch.active else "https://www.cb28.com/cp=9?d=1"
+        hint_text: "AACB1978432" if not dialog_switch.active else "https://www.cb28.com/"
 
     MDBoxLayout:
         orientation: 'horizontal'
         size_hint_y: None
         height: self.minimum_height
         spacing: dp(10)
+        md_bg_color: 0, 1, .4, .4
 
         MDLabel:
-            text: "Create QR code"
-            adaptive_height: True
+            text: "Advanced Options"
+            size_hint_x: 0.8
+            halign: "left"
 
         MDSwitch:
             id: dialog_switch
+            size_hint_x: 0.2
+            pos_hint: {"center_y": 0.33} 
+            on_active: app.on_switch_active(self, self.active)
+
+            
+
+    MDBoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: self.minimum_height
+        spacing: dp(10)
+        md_bg_color: 0, 1, .4, .4
+
+        MDLabel:
+            text: "Create QR code"
+            size_hint_x: 0.8
+            halign: "left"
+
+        MDSwitch:
+            id: dialog_switch
+            size_hint_x: 0.2
+            pos_hint: {"center_y": 0.33} 
             on_active: app.on_switch_active(self, self.active)
 '''
 
@@ -100,6 +131,13 @@ class MyApp(MDApp):
                 file_list.append(os.path.join(root, file))
 
         print(file_list)
+    
+    def set_bars_colors(self):
+        set_bars_colors(
+            self.theme_cls.primary_color,  # status bar color
+            #self.theme_cls.primary_color,  # navigation bar color
+            "Light",                       # icons color of status bar
+        )
 
     def toast(self,text:str, duration=1.0):
         if platform == 'android':
@@ -111,7 +149,7 @@ class MyApp(MDApp):
         # dialog
         if not self.dialog:
             self.dialog = MDDialog(
-                title="Create Barcode",
+                title="Quick Create",
                 type="custom",
                 content_cls=Builder.load_string(DIALOG_KV),
                 buttons=[
@@ -130,8 +168,9 @@ class MyApp(MDApp):
     def on_switch_active(self, instance, value):
         # dialog.title = self.dialog.children[0].children[-1].text
         # set 
-        self.dialog.children[0].children[-1].text = "Create QR code" if value else "Create Barcode"
+        # self.dialog.children[0].children[-1].text = "Create QR code" if value else "Create Barcode"
         print(f"Switch is now {'on' if value else 'off'}")
+        print(self.dialog.children[0].children)
 
     def on_tab_switch(self, instance_tabs, instance_tab, instance_tab_label,):
         screen = self.root.get_screen('home')
@@ -166,6 +205,16 @@ class MyApp(MDApp):
 
     def on_stop(self):
         pass
+
+    def on_pre_enter(self, *args):
+        # bind back button
+        self.bind(on_keyboard=self.quit_app)
+
+    def on_pre_leave(self, *args):
+        # unbind back button
+        self.unbind(on_keyboard=self.quit_app)
+        # delete files-shared
+        [SharedStorage().delete_shared(uri) for uri in self.uris]
 
     def quit_app(self,window,key,*args):
         # back button/gesture quits app
@@ -202,68 +251,84 @@ class MyApp(MDApp):
         return file_list
 
     def delete_file(self, file):
-        try:
-            os.remove(file)
-        except Exception as e:
-            print(e)
-            self.toast("Couldn't delete file")
-        self.toast("File deleted")
-        Clock.schedule_once(lambda dt : self.refresh_files() ,0.2)
+        def _del():
+            try:
+                os.remove(file)
+            except Exception as e:
+                print(e)
+                self.toast("❌ Couldn't delete file")
+            Clock.schedule_once(lambda dt :self.toast("🗑️ File deleted"), 0.2)
+            Clock.schedule_once(lambda dt : self.refresh_files() ,0.2)
+        #
+        Thread(target=_del).start()
 
     def share_file(self, file:str):
         if not os.path.exists(file):
-            self.toast("File not found")
+            self.toast("❌ File not found")
             return
-        
-        try:
-            if platform == 'android':
-                from android.permissions import request_permissions, Permission , check_permission
-                if not check_permission(Permission.READ_EXTERNAL_STORAGE) or not check_permission(Permission.WRITE_EXTERNAL_STORAGE):
-                    request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
+        # open _modal
+        _modal.open()
+        def _share():
+            try:
+                if platform == 'android':
+                    from android.permissions import request_permissions, Permission , check_permission
+                    if not check_permission(Permission.READ_EXTERNAL_STORAGE) or not check_permission(Permission.WRITE_EXTERNAL_STORAGE):
+                        request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
-            # create a file in Private storage
-            # filename = join(SharedStorage().get_cache_dir(),'ico.png')
-            filename = SharedStorage().copy_to_shared(file)
-            # add to uris list
-            self.uris.append(filename)
-            ShareSheet().share_file(filename)
-        except Exception as e:
-            print(e)
-            self.toast("Couldn't share file")
+                # create a file in Private storage
+                # filename = join(SharedStorage().get_cache_dir(),'ico.png')
+                filename = SharedStorage().copy_to_shared(file)
+                # add to uris list
+                self.uris.append(filename)
+                Clock.schedule_once(lambda x : _modal.dismiss(),.2)
+                ShareSheet().share_file(filename)
+            except Exception as e:
+                print(e)
+                Clock.schedule_once(lambda dt :self.toast("❌ Couldn't share file"),.2)
+                Clock.schedule_once(lambda x : _modal.dismiss(),.2)
+        #
+        Thread(target=_share).start()
 
     def generate_qr_code(self , code:str):
+        #
         _modal.open()
-        _ = codegen.generate_qr_code(code)
-        # refresh the files
-        self.root.get_screen('home').ids.rv.data.insert(
-            0,
-            {
-            'image_source': _,
-            }
-        )
-        _ = None
-        Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
-        print('qr',code)
+        def _gen():
+            _ = codegen.generate_qr_code(code)
+            # refresh the files
+            self.root.get_screen('home').ids.rv.data.insert(
+                0,
+                {
+                'image_source': _,
+                }
+            )
+            _ = None
+            Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
+            print('qr',code)
+        #
+        Thread(target=_gen).start()
 
     def generate_barcode(self,code:str):
         _modal.open()
-        # check if code is valid
-        if len(code) ==12 and code.isdigit():
-            _=codegen.generate_ean13_barcode(code)
-        elif len(code) ==11 and code.isdigit():
-            _=codegen.generate_upc_barcode(code)
-        else:
-            _=codegen.generate_code128_barcode(code)
-        print(code)
-        # refresh the files
-        self.root.get_screen('home').ids.rv.data.insert(
-            0,
-            {
-            'image_source': _,
-            }
-        )
-        _ = None
-        Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
+        def _gen():
+            # check if code is valid
+            if len(code) ==12 and code.isdigit():
+                _=codegen.generate_ean13_barcode(code)
+            elif len(code) ==11 and code.isdigit():
+                _=codegen.generate_upc_barcode(code)
+            else:
+                _=codegen.generate_code128_barcode(code)
+            print(code)
+            # refresh the files
+            self.root.get_screen('home').ids.rv.data.insert(
+                0,
+                {
+                'image_source': _,
+                }
+            )
+            _ = None
+            Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
+        #
+        Thread(target=_gen).start()
 
 
 _app = MyApp()

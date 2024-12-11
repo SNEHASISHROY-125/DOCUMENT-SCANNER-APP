@@ -4,3 +4,7 @@
 /barcode/__pycache__
 /src
 /barcode/src
+/barcode/.vscode
+/barcode/kv
+/barcode/hotreload.py
+/barcode/test.py

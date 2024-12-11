@@ -4,8 +4,7 @@ ScreenManager:
 
 <HomeScreen>:
     name: 'home'
-    FitImage:
-        source: 'https://images.pexels.com/photos/4544747/pexels-photo-4544747.jpeg?cs=srgb&dl=pexels-leeloothefirst-4544747.jpg&fm=jpg'
+    
     BoxLayout:
         orientation: 'vertical'
         MDTopAppBar:
@@ -25,9 +24,7 @@ ScreenManager:
                 icon: "home"
                 badge_icon: ""
                 icon_color: app.theme_cls.primary_color
-                FitImage:
-                    source: 'https://images.pexels.com/photos/4544747/pexels-photo-4544747.jpeg?cs=srgb&dl=pexels-leeloothefirst-4544747.jpg&fm=jpg'
-
+                
                 CustomRecycleView:
                     id: rv
 
@@ -79,7 +76,7 @@ ScreenManager:
         size_hint_y: None
         height: self.minimum_height
         spacing: dp(10)
-    
+
         Image:
             id: image
             source: root.image_source
@@ -128,6 +125,17 @@ ScreenManager:
         padding: dp(10)
 
         
+<AdvancedQRScreen>:
+    name: 'advanced_qr'
+
+    MDTopAppBar:
+        title: "Generate Advanced QR Code"
+        pos_hint: {"top": 1}
+        md_bg_color: app.theme_cls.primary_color  # Set the transparency by adjusting the alpha value (last value)
+    MDLabel:
+        text: 'Advanced QR Screen'
+        halign: 'center'
+   
 
 <SettingsScreen>:
     name: 'settings'

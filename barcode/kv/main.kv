@@ -1,0 +1,414 @@
+# kv/main.kv
+#:import Factory kivy.factory.Factory
+<MainScreen@Screen>:
+    name: 'advanced_qr'
+
+    FitImage:
+        id : fit
+        source: app.fit_display_source
+        size_hint: None, None
+        size: "200dp", "200dp"
+        pos_hint: {"center_x": 0.5, "center_y": 0.757}
+        
+        canvas.after:
+            Color:
+                rgba: [1, 0, 0, 1]
+            Line:
+                rectangle: fit.x, fit.y, fit.width, fit.height
+                width: dp(2)
+            Color:
+                id: color
+                rgba: [1, 0, 0, 1] if app.show_line else [1, 0, 0, 0]
+            Line:
+                points: [fit.x , fit.y ,fit.x, fit.y - 20, fit.right, fit.y - 20 , fit.right, fit.y]
+                width: dp(1)
+                
+                
+        on_touch_down: print(fit.x, fit.y)  
+
+    # FitImage:
+    #     source: "favicons/facebook.png"
+    #     size_hint: None, None
+    #     size: "50dp", "50dp"
+    #     pos_hint: {"center_x": 0.5, "center_y": 0.76}
+
+    MDIcon:
+        icon: icon_field.text if Icon_switch.active else ""
+        pos_hint: {"center_x": 0.5, "center_y": 0.76}
+        theme_text_color: "Custom"
+        text_color: app.icon_brush_color
+        # size_hint: None, None
+        font_size: "50dp"
+
+        canvas.before:
+            Color:
+                rgba: 1, 1, 1, .96
+            Rectangle:
+                size: self.texture_size[0] * 0.9, self.texture_size[1] * 0.9
+                pos: self.pos
+
+    MDTopAppBar:
+        title: "Generate Advanced QR"
+        pos_hint: {"top": 1}
+        md_bg_color: app.theme_cls.primary_color  # Set the transparency by adjusting the alpha value (last value)
+        left_action_items: [["arrow-left", lambda x: app.show_screen("home")]]
+
+    MDFloatLayout:
+        
+        MDLabel:
+            id : footer
+            text: 'footer text' if footer_field.text == '' else footer_field.text
+            theme_text_color: "Custom"
+            text_color: app.footer_brush_color
+            halign: 'center'
+            opacity: 0.0 if not footer_switch.active else 1.0
+            x: fit.center_x - self.width/2
+            y: fit.y - 20
+            size_hint: None, None
+            size: dp(180), dp(20)
+
+        MDFloatingActionButton:
+            icon: "download"
+            pos_hint: {"center_x": 0.87, "center_y": 0.6}
+            on_release: app.save_qr_code(fit, "qr_code.png")
+
+        MDCard:
+            id: text_input_card
+            padding: "10dp"
+            size_hint: .94 ,None
+            height: "300dp"
+            pos_hint: {"center_x": 0.5, "center_y": 0.35}
+            # elevation: 10
+            md_bg_color: 1, 1, .1, .5
+
+            ScrollView:
+                do_scroll_y: True
+                size_hint_y: None
+                height: dp(270)
+                md_bg_color: 1,1,1,0
+                MDBoxLayout:
+                    orientation: "vertical"
+                    # padding: [dp(10), 0, dp(10), 0]
+                    spacing: "10dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    # pos_hint: {"center_x": 0.5, "center_y": 0.8}
+                    MDTextField:
+                        id: qr_data_field
+                        hint_text: "QR code data"
+                        helper_text: "Enter QR code Data"
+                        helper_text_mode: "on_focus"
+                        size_hint_x: 0.97
+                        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                        mode: "rectangle"
+                        icon_right: "qrcode"
+                        max_text_length: 150
+                        on_focus: text_input_card.pos_hint = {"center_x": 0.5, "center_y": 0.43} if qr_data_field.focus else {"center_x": 0.5, "center_y": 0.32}
+
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint_x: 0.97
+                        size_hint_y: None
+                        height: self.minimum_height
+                        pos_hint: {'center_x': 0.5,'center_y': 0.5}
+                       
+                        md_bg_color: 0, 1, .4, 0
+
+                        MDLabel:
+                            text: "  Micro QR"
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.primary_color
+                            size_hint_x: 0.8
+                            halign: "left"
+
+                        MDSwitch:
+                            id: Micro_switch
+                            size_hint_x: 0.4
+                            pos_hint: {"center_y": 0.33} 
+                            on_active: 
+                                Icon_switch.disabled = Micro_switch.active 
+                                Icon_switch.active = not Micro_switch.active if Icon_switch.active else Icon_switch.active
+                                qr_data_field.max_text_length = 10 if Micro_switch.active else 150
+
+                            # canvas.after:
+                            #     Color:
+                            #         rgba: 1, 0, 0, 1
+                            #     Line:
+                            #         rectangle: Micro_switch.x, Micro_switch.y, Micro_switch.width, Micro_switch.height
+                            #         width: dp(2)
+                            #     Line:
+                            #         points: [Micro_switch.center_x, Micro_switch.y, Micro_switch.center_x, Micro_switch.top]
+                            #         width: dp(1)
+
+                        MDLabel:
+                            text: ""
+                            size_hint_x: 0.23
+                            halign: "left"
+                        MDIconButton:
+                            id: info
+                            icon: "information"
+
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint_x: 0.97
+                        size_hint_y: None
+                        height: self.minimum_height
+                        pos_hint: {'center_x': 0.5,'center_y': 0.5}
+                       
+                        md_bg_color: 0, 1, .4, 0
+
+                        MDLabel:
+                            text: "  Add Icon to QR"
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.primary_color
+                            size_hint_x: 0.8
+                            halign: "left"
+
+                        MDSwitch:
+                            id: Icon_switch
+                            size_hint_x: 0.4
+                            pos_hint: {"center_y": 0.33} 
+                            disabled: False
+                            on_active: icon_field.disabled = not icon_field.disabled
+
+
+                        MDLabel:
+                            text: ""
+                            size_hint_x: 0.23
+                            halign: "left"
+                        MDIconButton:
+                            id: Icon_brush
+                            color: 0,1, 0, 1
+                            icon: "brush"
+                            on_release: app.open_color_picker(set_color_to='icon_brush_color')
+                            canvas.after:
+                                Color:
+                                    rgba: app.icon_brush_color
+                                Line:
+                                Ellipse:
+                                    pos: self.center_x + 10 , self.center_y - 11
+                                    size: 5, 5
+
+                    MDTextField:
+                        id: icon_field
+                        text: "facebook" if Icon_switch.active else ""
+                        hint_text: "any social media icon or paste link"
+                        helper_text: "Icon be centered of QR code"
+                        helper_text_mode: "on_focus"
+                        max_text_length: 24
+                        size_hint_x: 0.97
+                        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                        mode: "rectangle"
+                        icon_right: "facebook" if self.text == '' else self.text
+                        disabled: True
+
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint_x: 0.97
+                        size_hint_y: None
+                        height: self.minimum_height
+                        pos_hint: {'center_x': 0.5,'center_y': 0.5}
+                       
+                        md_bg_color: 0, 1, .4, 0
+
+                        MDLabel:
+                            text: "  Add Footer to QR"
+                            theme_text_color: "Custom"
+                            
+                            text_color: app.theme_cls.primary_color
+                            size_hint_x: 0.8
+                            halign: "left"
+
+                        MDSwitch:
+                            id: footer_switch
+                            size_hint_x: 0.4
+                            pos_hint: {"center_y": 0.33} 
+                            on_active: 
+                                footer_field.disabled = not footer_field.disabled
+                                app.show_line = footer_switch.active
+                            
+                                
+                        MDLabel:
+                            text: ""
+                            size_hint_x: 0.23
+                            halign: "left"
+                        MDIconButton:
+                            id: footer_brush
+                            
+                            icon: "brush"
+                            on_release: app.open_color_picker(set_color_to='footer_brush_color')
+                            canvas.after:
+                                Color:
+                                    rgba: app.footer_brush_color
+                                Line:
+                                Ellipse:
+                                    pos: self.center_x + 10 , self.center_y - 11
+                                    size: 5, 5
+                    
+                    MDTextField:
+                        id: footer_field
+                        hint_text: "Footer Text"
+                        helper_text: "footer-line for QR code"
+                        helper_text_mode: "on_focus"
+                        max_text_length: 22
+                        on_text: self.text = self.text[:self.max_text_length]
+                        size_hint_x: 0.97
+                        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                        mode: "rectangle"
+                        icon_right: "text-box"
+                        disabled: True
+
+                    MDLabel:
+                        text: ""
+                        size_hint_y: None
+                        height: dp(10)
+
+
+                    
+        MDCard:
+            
+            padding: [dp(10), 0, dp(10), 0]
+            size_hint: .94 ,None
+            height: "80dp"
+            pos_hint: {"center_x": 0.5, "center_y": 0.07}
+            # elevation: 10
+            md_bg_color: 1, 1, .1, .5
+
+            ScrollView:
+                do_scroll_x: True
+                do_scroll_y: False
+                size_hint_y: None
+                height: dp(70)
+                md_bg_color: 1,1,1,0
+
+                MDBoxLayout:
+                    orientation: 'horizontal'
+                    padding: [dp(10), 0, dp(10), 7]
+                    spacing: "10dp"
+                    size_hint_x: None
+                    width: self.minimum_width
+
+                    SelectableImage:
+                        id: img7
+                        source: "kv/color-picker-qr.png"
+                        color_code: 0, 0, 0
+                        on_release: 
+                            app.fit_display_source = img7.source
+                            print("Image clicked")
+                            img1.selected = False
+                            img2.selected = False
+                            img3.selected = False
+                            img4.selected = False
+                            img5.selected = False
+                            img6.selected = False
+
+                    SelectableImage:
+                        id: img6
+                        source: "kv/qr_code_20210919123461.png"
+                        color_code: 0, 0, 0
+                        on_release: 
+                            print("Image clicked")
+                            app.fit_display_source = img6.source
+                            img1.selected = False
+                            img2.selected = False
+                            img3.selected = False
+                            img4.selected = False
+                            img5.selected = False
+                            img7.selected = False
+
+                    SelectableImage:
+                        id: img5
+                        source: "kv/qr_code_20210919123460.png"
+                        color_code: 238, 252, 40
+                        on_release: 
+                            app.fit_display_source = img5.source
+                            print("Image clicked")
+                            img1.selected = False
+                            img2.selected = False
+                            img3.selected = False
+                            img4.selected = False
+                            img6.selected = False
+                            img7.selected = False
+
+                    SelectableImage:
+                        id: img1
+                        source: "kv/qr_code_20210919123456.png"
+                        color_code: 217, 37, 217
+                        on_release: 
+                            app.fit_display_source = img1.source
+                            print("Image clicked" , self.color_code)
+                            img2.selected = False
+                            img3.selected = False
+                            img4.selected = False
+                            img5.selected = False
+                            img6.selected = False
+                            img7.selected = False
+
+                    SelectableImage:
+                        id: img2
+                        source: "kv/qr_code_20210919123457.png"
+                        color_code: 36, 56, 237
+                        on_release: 
+                            app.fit_display_source = img2.source
+                            print("Image clicked")
+                            img1.selected = False
+                            img3.selected = False
+                            img4.selected = False
+                            img5.selected = False
+                            img6.selected = False
+                            img7.selected = False
+
+                    SelectableImage:
+                        id: img3
+                        source: "kv/qr_code_20210919123458.png"
+                        color_code: 245, 100, 22
+                        on_release: 
+                            app.fit_display_source = img3.source
+                            print("Image clicked")
+                            img1.selected = False
+                            img2.selected = False
+                            img4.selected = False
+                            img5.selected = False
+                            img6.selected = False
+                            img7.selected = False
+                    
+                    SelectableImage:
+                        id: img4
+                        source: "kv/qr_code_20210919123459.png"
+                        color_code: 130, 247, 27
+                        on_release: 
+                            app.fit_display_source = img4.source
+                            print("Image clicked")
+                            img1.selected = False
+                            img2.selected = False
+                            img3.selected = False
+                            img5.selected = False
+                            img6.selected = False
+                            img7.selected = False
+
+<SelectableImage@MDCard>:
+    color_code: 1, 1, 1
+    size_hint: None, None
+    size: "50dp", "50dp"
+    pos_hint: {"center_x": 0.5, "center_y": 0.5}
+    md_bg_color: 1, 1, 1, .3
+    ripple_behavior: True
+    on_release: self.selected = not self.selected
+
+    selected: False
+    source: ""
+
+    canvas.after:
+        Color:
+            rgba: (0, 1, 0, 1) if self.selected else (1, 1, 1, 0)
+        Line:
+
+            points: [self.x + 10, self.center_y, self.center_x, self.y + 10, self.right, self.top]
+                
+            width: dp(2)
+
+    FitImage:
+        source: root.source
+        size_hint: None, None
+        size: "50dp", "50dp"
+

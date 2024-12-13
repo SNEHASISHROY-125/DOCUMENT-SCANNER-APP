@@ -1,0 +1,37 @@
+
+<MainScreen@Screen>
+    MDBoxLayout:
+        orientation: 'vertical'
+        padding: dp(10)
+        spacing: dp(10)
+        adaptive_height: True  # This ensures dynamic height adjustment
+
+        MDTextField:
+            id: barcode_textfield
+            hint_text: "AACB1978432" if not dialog_switch.active else "https://www.cb28.com/"
+            
+
+        MDBoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: self.minimum_height
+            spacing: dp(10)
+            md_bg_color: 0, 1, .4, .4
+
+            MDLabel:
+                text: " Advanced Options"
+                size_hint_x: 0.8
+                halign: "left"
+
+            MDSwitch:
+                id: dialog_switch
+                size_hint_x: 0.4
+                pos_hint: {"center_y": 0.33} 
+                # on_active: app.on_switch_active(self, self.active)
+            MDLabel:
+                text: ""
+                size_hint_x: 0.06
+                halign: "left"
+            MDIconButton:
+                icon: "information"
+                # on_release: app.show_dialog()

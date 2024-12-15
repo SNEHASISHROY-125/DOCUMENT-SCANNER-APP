@@ -242,6 +242,7 @@
                     
                     MDTextField:
                         id: footer_field
+                        text: app.qr_code_description  if footer_switch.active else ""
                         hint_text: "Footer Text"
                         helper_text: "footer-line for QR code"
                         helper_text_mode: "on_focus"

@@ -135,10 +135,10 @@ def generate_qr_code(data, description='',output='') -> str:
         qr.make(fit=True)
         img = qr.make_image(fill='black', back_color='white')
 
+        img = img.convert("RGBA")
+        width, height = img.size
         # Add description
         if description:
-            img = img.convert("RGBA")
-            width, height = img.size
             new_height = height + 50  # Add space for description
             new_img = Image.new("RGBA", (width, new_height), "WHITE")
             new_img.paste(img, (0, 0))
@@ -259,10 +259,10 @@ def generate_custom_qr_icon(data, description='', output='', scale=10, light=(25
         buffer.seek(0)
         img = Image.open(buffer)
 
+        img = img.convert("RGBA")
+        width, height = img.size
         # Add description
         if description:
-            img = img.convert("RGBA")
-            width, height = img.size
             new_height = height + 30  # Add space for description
             new_img = Image.new("RGBA", (width, new_height), info_text_back_color) # text back-ground color
             new_img.paste(img, (0, 0))

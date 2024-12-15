@@ -132,12 +132,12 @@ class MyApp(MDApp):
     show_line = BooleanProperty(False)
     fit_display_source = StringProperty("kv/color-picker-qr.png")
     #
-    icon_brush_color = ListProperty([0,1,.2, 1])
-    footer_brush_color = ListProperty([0,1,.2, 1])
+    icon_brush_color = ListProperty([1,.4,.2, 1])
+    footer_brush_color = ListProperty([1,.4,.2, 1])
     qr_code_data = StringProperty("fudemy.me")
     qr_code_description = StringProperty("fudemy.me")
     qr_code_icon = StringProperty("qrcode")
-    qr_code_color = ListProperty([0,1,.2, 1])
+    qr_code_color = ListProperty([0, 0, 0, 1])
     qr_code_micro = BooleanProperty(False)
     qr_save_dir = StringProperty("src/qr")
 

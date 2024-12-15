@@ -1,6 +1,9 @@
 # kv/main.kv
 #:import Factory kivy.factory.Factory
-<MainScreen@Screen>:
+
+
+
+<AdvancedQRScreen@Screen>:
     name: 'advanced_qr'
 
     FitImage:
@@ -48,10 +51,11 @@
                 pos: self.pos
 
     MDTopAppBar:
+        id: top_app_bar
         title: "Generate Advanced QR"
         pos_hint: {"top": 1}
         md_bg_color: app.theme_cls.primary_color  # Set the transparency by adjusting the alpha value (last value)
-        left_action_items: [["arrow-left", lambda x: app.show_screen("home")]]
+        left_action_items: [["arrow-left", lambda x: (setattr(app.root, 'current', 'home'), setattr(app.theme_cls, 'theme_style', 'Dark'))]]
 
     MDFloatLayout:
         
@@ -66,11 +70,7 @@
             y: fit.y - 20
             size_hint: None, None
             size: dp(180), dp(20)
-
-        MDFloatingActionButton:
-            icon: "download"
-            pos_hint: {"center_x": 0.87, "center_y": 0.6}
-            on_release: app.save_qr_code(fit, "qr_code.png")
+        
 
         MDCard:
             id: text_input_card
@@ -95,6 +95,7 @@
                     # pos_hint: {"center_x": 0.5, "center_y": 0.8}
                     MDTextField:
                         id: qr_data_field
+                        text: ""
                         hint_text: "QR code data"
                         helper_text: "Enter QR code Data"
                         helper_text_mode: "on_focus"
@@ -103,7 +104,8 @@
                         mode: "rectangle"
                         icon_right: "qrcode"
                         max_text_length: 150
-                        on_focus: text_input_card.pos_hint = {"center_x": 0.5, "center_y": 0.43} if qr_data_field.focus else {"center_x": 0.5, "center_y": 0.32}
+                        # on_focus: text_input_card.pos_hint = {"center_x": 0.5, "center_y": 0.43} if qr_data_field.focus else {"center_x": 0.5, "center_y": 0.32}
+                        # on_focus: top_app_bar.title = qr_data_field.text  if qr_data_field.focus else "Generate Advanced QR"
 
                     MDBoxLayout:
                         orientation: 'horizontal'
@@ -129,17 +131,9 @@
                                 Icon_switch.disabled = Micro_switch.active 
                                 Icon_switch.active = not Micro_switch.active if Icon_switch.active else Icon_switch.active
                                 qr_data_field.max_text_length = 10 if Micro_switch.active else 150
+                                Icon_brush.disabled = Micro_switch.active
 
-                            # canvas.after:
-                            #     Color:
-                            #         rgba: 1, 0, 0, 1
-                            #     Line:
-                            #         rectangle: Micro_switch.x, Micro_switch.y, Micro_switch.width, Micro_switch.height
-                            #         width: dp(2)
-                            #     Line:
-                            #         points: [Micro_switch.center_x, Micro_switch.y, Micro_switch.center_x, Micro_switch.top]
-                            #         width: dp(1)
-
+                            
                         MDLabel:
                             text: ""
                             size_hint_x: 0.23
@@ -181,6 +175,7 @@
                             color: 0,1, 0, 1
                             icon: "brush"
                             on_release: app.open_color_picker(set_color_to='icon_brush_color')
+                            disabled: False
                             canvas.after:
                                 Color:
                                     rgba: app.icon_brush_color
@@ -261,9 +256,24 @@
                     MDLabel:
                         text: ""
                         size_hint_y: None
-                        height: dp(10)
+                        height: dp(300)
 
-
+        MDIconButton:
+            icon: "auto-fix"
+            pos_hint: {"center_x": 0.92,"center_y": 0.57}
+            md_bg_color: 1, 1, 0, 1  
+            on_release: 
+                app.qr_code_data = qr_data_field.text
+                app.qr_code_icon = icon_field.text
+                app.qr_code_description = footer_field.text
+                app.qr_code_micro = Micro_switch.active
+                app.generate_qr_code_icon()
+            canvas.before:
+                Color:
+                    rgba: 1, 1, 1, 1
+                Line:
+                    circle: (self.center_x, self.center_y, self.width * 0.6)
+                    width: dp(4)
                     
         MDCard:
             
@@ -291,9 +301,11 @@
                     SelectableImage:
                         id: img7
                         source: "kv/color-picker-qr.png"
+                        selected: True
                         color_code: 0, 0, 0
                         on_release: 
                             app.fit_display_source = img7.source
+                            app.qr_code_color = img7.color_code
                             print("Image clicked")
                             img1.selected = False
                             img2.selected = False
@@ -309,6 +321,7 @@
                         on_release: 
                             print("Image clicked")
                             app.fit_display_source = img6.source
+                            app.qr_code_color = img6.color_code
                             img1.selected = False
                             img2.selected = False
                             img3.selected = False
@@ -322,6 +335,7 @@
                         color_code: 238, 252, 40
                         on_release: 
                             app.fit_display_source = img5.source
+                            app.qr_code_color = img5.color_code
                             print("Image clicked")
                             img1.selected = False
                             img2.selected = False
@@ -336,6 +350,7 @@
                         color_code: 217, 37, 217
                         on_release: 
                             app.fit_display_source = img1.source
+                            app.qr_code_color = img1.color_code
                             print("Image clicked" , self.color_code)
                             img2.selected = False
                             img3.selected = False
@@ -350,6 +365,7 @@
                         color_code: 36, 56, 237
                         on_release: 
                             app.fit_display_source = img2.source
+                            app.qr_code_color = img2.color_code
                             print("Image clicked")
                             img1.selected = False
                             img3.selected = False
@@ -364,6 +380,7 @@
                         color_code: 245, 100, 22
                         on_release: 
                             app.fit_display_source = img3.source
+                            app.qr_code_color = img3.color_code
                             print("Image clicked")
                             img1.selected = False
                             img2.selected = False
@@ -378,6 +395,7 @@
                         color_code: 130, 247, 27
                         on_release: 
                             app.fit_display_source = img4.source
+                            app.qr_code_color = img4.color_code
                             print("Image clicked")
                             img1.selected = False
                             img2.selected = False

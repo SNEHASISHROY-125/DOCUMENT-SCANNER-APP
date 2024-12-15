@@ -1,6 +1,9 @@
+#:include kv/main.kv
+
 ScreenManager:
     HomeScreen:
     SettingsScreen:
+    AdvancedQRScreen:
 
 <HomeScreen>:
     name: 'home'
@@ -124,18 +127,7 @@ ScreenManager:
         spacing: dp(10)
         padding: dp(10)
 
-        
-<AdvancedQRScreen>:
-    name: 'advanced_qr'
 
-    MDTopAppBar:
-        title: "Generate Advanced QR Code"
-        pos_hint: {"top": 1}
-        md_bg_color: app.theme_cls.primary_color  # Set the transparency by adjusting the alpha value (last value)
-    MDLabel:
-        text: 'Advanced QR Screen'
-        halign: 'center'
-   
 
 <SettingsScreen>:
     name: 'settings'

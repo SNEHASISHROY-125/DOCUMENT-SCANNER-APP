@@ -15,6 +15,12 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.textfield import MDTextField
 from kivy.properties import StringProperty
+# hotreload ->
+from kivy.properties import BooleanProperty, StringProperty , ListProperty
+from kivymd.uix.pickers import MDColorPicker
+from typing import Union
+import threading
+#
 from kivy.metrics import dp
 from kivy.utils import platform
 from kivymd.toast import toast as tst
@@ -81,7 +87,9 @@ MDBoxLayout:
             id: dialog_switch
             size_hint_x: 0.2
             pos_hint: {"center_y": 0.33} 
-            on_active: app.on_switch_active(self, self.active)
+            on_active: 
+                app.root.get_screen('advanced_qr').manager.current = 'advanced_qr' if self.active else 'home'
+                # app.on_switch_active(self, self.active)
 
             
 
@@ -119,6 +127,20 @@ class MyApp(MDApp):
     dialog = None
     uris = []
 
+    # app-internals
+    dialog = None
+    show_line = BooleanProperty(False)
+    fit_display_source = StringProperty("kv/color-picker-qr.png")
+    #
+    icon_brush_color = ListProperty([0,1,.2, 1])
+    footer_brush_color = ListProperty([0,1,.2, 1])
+    qr_code_data = StringProperty("fudemy.me")
+    qr_code_description = StringProperty("fudemy.me")
+    qr_code_icon = StringProperty("qrcode")
+    qr_code_color = ListProperty([0,1,.2, 1])
+    qr_code_micro = BooleanProperty(False)
+    qr_save_dir = StringProperty("src/qr")
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.title = "Barcode"
@@ -149,9 +171,9 @@ class MyApp(MDApp):
         # dialog
         if not self.dialog:
             self.dialog = MDDialog(
-                title="Quick Create",
+                title="  Quick Create",
                 type="custom",
-                content_cls=Builder.load_string(DIALOG_KV),
+                content_cls=Builder.load_file('quick_create.kv'),
                 buttons=[
                     MDFlatButton(
                         text="CANCEL",
@@ -183,6 +205,16 @@ class MyApp(MDApp):
         print(instance_tab.name)
 
     def build(self):
+        # hotreload ->
+        global color_picker
+        color_picker = MDColorPicker(size_hint=(0.45, 0.85))
+        color_picker.set_color_to = "icon_brush_color"
+        # color_picker.open()
+        color_picker.bind(
+            # on_select_color=get_color,
+            on_release=self.get_selected_color,
+        ) 
+        #
         self.theme_cls.theme_style = 'Dark' 
         return Builder.load_file('app.kv')
     
@@ -329,6 +361,89 @@ class MyApp(MDApp):
             Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
         #
         Thread(target=_gen).start()
+
+    # hotreload ->
+    def open_color_picker(self,set_color_to):
+        color_picker.set_color_to = set_color_to
+        color_picker.open()
+
+    def update_color(self, color: list) -> None: ...
+        # self.root.ids.toolbar.md_bg_color = color
+
+    def get_selected_color(
+        self,
+        instance_color_picker: MDColorPicker,
+        type_color: str,
+        selected_color: Union[list, str],
+    ):
+        '''Return selected color.'''
+        print(color_picker,color_picker.get_rgb(selected_color))
+        # set color to icon_brush_color
+        print(selected_color , instance_color_picker.set_color_to)
+        _ = selected_color  
+        # _ = color_picker.get_rgb(selected_color)
+        # TODO: pass it to qr code generator method
+
+        if instance_color_picker.set_color_to == "icon_brush_color":
+            _app.icon_brush_color = _
+        elif instance_color_picker.set_color_to == "footer_brush_color":
+            _app.footer_brush_color = _
+            print(_app.icon_brush_color)
+        # dissmiss color picker
+        instance_color_picker.dismiss()
+        
+    def get_rgb(self, color: list) -> tuple:
+        """Returns an ``RGB`` list of values from 0 to 255."""
+
+        return tuple([
+            int(value * 255)
+            for value in (color[:-1] if len(color) == 4 else color)
+        ])
+
+    def on_select_color(self, instance_gradient_tab, color: list) -> None:
+        '''Called when a gradient image is clicked.'''
+
+    def generate_qr_code_icon(self):
+        # check micro and data len <11
+        if not self.qr_code_data:
+            self.toast("QR code data cannot be empty")
+            return
+        elif self.qr_code_micro and len(self.qr_code_data) > 11:
+            print(self.qr_code_data)
+            self.toast("Micro QR code can only contain 10 characters")
+            return
+        _modal.open()
+        def _gen():
+            # import  test2 as t2# generate_custom_qr_icon
+            import time
+            time.sleep(1)
+            _ = codegen.generate_custom_qr_icon(
+                self.qr_code_data,
+                self.qr_code_description,
+                output='',
+                scale=10,
+                light=(255, 255, 255),
+                dark=tuple(self.qr_code_color),
+                border=1,
+                icon_name=self.qr_code_icon,
+                info_text_color=self.get_rgb(self.footer_brush_color),
+                # info_text_back_color="WHITE",
+                icon_color=self.get_rgb(self.icon_brush_color),
+                micro=self.qr_code_micro
+            )
+            print("QR Code Generated",'micro',self.qr_code_micro)
+            # self.fit_display_source = "qr_code.png"
+             # refresh the files
+            self.root.get_screen('home').ids.rv.data.insert(
+                0,
+                {
+                'image_source': _,
+                }
+            )
+            _ = None
+            Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
+        # Clock.schedule_once(lambda x: threading.Thread(target=_gen).start(), 0.1)
+        threading.Thread(target=_gen).start()
 
 
 _app = MyApp()

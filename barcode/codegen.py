@@ -196,7 +196,7 @@ def generate_custom_qr(data, description='', output='', scale=10, light=(255, 25
         buffer = BytesIO()
         qr.save(buffer, kind='png', scale=scale, dark=dark, light=light, border=border)
         buffer.seek(0)
-        img = Image.open(buffer)
+        img = Image.open(BytesIO(buffer.getvalue()))
 
         # Add description
         if description:
@@ -243,6 +243,7 @@ def generate_custom_qr(data, description='', output='', scale=10, light=(255, 25
 
 
 from kivymd.icon_definitions import md_icons
+from PIL import Image, ImageDraw
 
 def generate_custom_qr_icon(data, description='', output='', scale=10, light=(255, 255, 255), dark=(0, 0, 0), border=1, icon_name=None , info_text_color=(36, 56, 237,) , info_text_back_color="WHITE",icon_color=(238, 252, 40,),micro:bool=False) -> str:
     '''
@@ -332,27 +333,3 @@ def generate_custom_qr_icon(data, description='', output='', scale=10, light=(25
 # Example usage
 # generate_custom_qr_icon("example.com",micro=True, description="https://example.com/id=pol?9800", output='IXsegno_custom_qr_code.png', scale=10, border=1, dark=(217, 37, 217,), icon_name='twitch', info_text_color=(36, 56, 237,), info_text_back_color="WHITE", icon_color=(238, 252, 40,))
 
-from kivymd.app import MDApp as App
-from kivy.uix.image import Image
-from kivy.uix.behaviors import ButtonBehavior
-
-
-class MyButton(ButtonBehavior, Image):
-    def __init__(self, **kwargs):
-        super(MyButton, self).__init__(**kwargs)
-        self.source = 'atlas://data/images/defaulttheme/checkbox_off'
-
-    def on_press(self):
-        self.source = 'atlas://data/images/defaulttheme/checkbox_on'
-        print('Button pressed')
-
-    def on_release(self):
-        self.source = 'atlas://data/images/defaulttheme/checkbox_off'
-
-
-class SampleApp(App):
-    def build(self):
-        return MyButton()
-
-
-# SampleApp().run()

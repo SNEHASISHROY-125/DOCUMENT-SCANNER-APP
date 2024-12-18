@@ -1,0 +1,64 @@
+#kv/CustomCard.kv
+
+# <AdvancedQRScreen@Screen>:
+#     name: 'advanced_qr'
+
+# 	CustomCard:
+# 		# image_source: "src/code128_barcode_20241204152826.png" 
+# 		image_source: "src/qr/qr_code_20241215174410.png"
+
+<CustomCard>:
+	id: box
+	orientation: "vertical"
+	size_hint_y: None
+	# height: self.minimum_height
+	height: dp(250)
+	padding: dp(10)
+	md_bg_color: .4, .3, .9, 1  #1, 1, 1, 1
+	radius: [dp(10)]
+	on_release: app.open_image_preview(image.source)
+	MDBoxLayout:
+		orientation: "horizontal"
+		size_hint_y: None
+		height: self.minimum_height
+		spacing: dp(10)
+		md_bg_color: 1, 1, .2, 1
+		radius: [dp(10)]
+
+		FitImage:
+			id: image
+			source: root.image_source
+			allow_stretch: True
+			keep_ratio: True
+			size_hint_y: None
+			height: box.height * 0.91  # Adjust this multiplier to control image height relative to width
+			radius: [dp(10)]
+			
+		MDBoxLayout:
+			orientation: "vertical"
+			size_hint_x: None
+			width: self.minimum_width
+			# md_bg_color: 1, .3, .2, 1
+
+			MDIconButton:
+				icon: "share-circle"
+				text: "Share"
+				theme_text_color: "Custom"
+				text_color: app.theme_cls.primary_color
+				on_release:  app.share_file(root.ids.image.source)
+			MDIconButton:
+				icon: "delete-variant"
+				text: "Delete"
+				theme_text_color: "Custom"
+				text_color: 1, 0, 0, 1
+				on_release: app.delete_file(root.ids.image.source)
+
+			MDLabel:
+				text: ' '
+				theme_text_color: "Primary"
+				size_hint_y: None
+				height: self.texture_size[1] * 5
+				halign: "center"
+				font_style: "H6"
+				theme_text_color: "Primary"
+				text_color: 0, 0, 1, 1

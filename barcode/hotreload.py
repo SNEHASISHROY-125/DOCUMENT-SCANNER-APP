@@ -13,14 +13,19 @@ from kivymd.uix.button import MDFlatButton
 from kivymd.uix.pickers import MDColorPicker
 from typing import Union
 import threading
+from kivymd.uix.card import MDCard
+# from kivymd.uix.textfield.textfield #import MDTextField
 
 
 KV_DIR = os.path.join(os.path.dirname(__file__), "kv")
 
+class CustomCard(MDCard):
+    # icon = StringProperty()
+    image_source = StringProperty()        
 
 class MainApp(MDApp):
     # KV_FILES = [os.path.join(KV_DIR, kv_file) for kv_file in os.listdir(KV_DIR) if kv_file.endswith(".kv")]
-    KV_FILES = [[os.path.join(KV_DIR, "main.kv"),os.path.join('quick_create.kv')][1]]
+    KV_FILES = [[os.path.join(KV_DIR, "main.kv"),os.path.join('quick_create.kv'),os.path.join('CustomCard.kv')][2]]
     DEBUG = True
 
     # app-internals
@@ -49,6 +54,7 @@ class MainApp(MDApp):
         )
         self._init_loading_widget()
         # return Builder.load_file(self.KV_FILES[0])
+        self.theme_cls.theme_style = "Dark"
         return Factory.AdvancedQRScreen()
     
     def _init_loading_widget(self):

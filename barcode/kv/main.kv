@@ -23,7 +23,7 @@
                 id: color
                 rgba: [1, 0, 0, 1] if app.show_line else [1, 0, 0, 0]
             Line:
-                points: [fit.x , fit.y ,fit.x, fit.y - 20, fit.right, fit.y - 20 , fit.right, fit.y]
+                points: [fit.x , fit.y ,fit.x, fit.y - 50, fit.right, fit.y - 50 , fit.right, fit.y]
                 width: dp(1)
                 
                 
@@ -55,7 +55,7 @@
         title: "Generate Advanced QR"
         pos_hint: {"top": 1}
         md_bg_color: app.theme_cls.primary_color  # Set the transparency by adjusting the alpha value (last value)
-        left_action_items: [["arrow-left", lambda x: (setattr(app.root, 'current', 'home'), setattr(app.theme_cls, 'theme_style', 'Dark'))]]
+        left_action_items: [["arrow-left", lambda x: (setattr(app.root, 'current', 'home'), setattr(app.theme_cls, 'primary_palette', 'Teal'))]]
 
     MDFloatLayout:
         
@@ -67,19 +67,25 @@
             halign: 'center'
             opacity: 0.0 if not footer_switch.active else 1.0
             x: fit.center_x - self.width/2
-            y: fit.y - 20
+            y: fit.y - 47
             size_hint: None, None
             size: dp(180), dp(20)
         
 
         MDCard:
             id: text_input_card
+            # canvas.before:
+            #     Color:
+            #         rgba: 1, 0, 0, 1
+            #     Line:
+            #         points: self.width, self.top , self.x +30, self.top
+            #         width: dp(2)
             padding: "10dp"
             size_hint: .94 ,None
             height: "300dp"
-            pos_hint: {"center_x": 0.5, "center_y": 0.35}
+            pos_hint: {"center_x": 0.5, "center_y": 0.33}
             # elevation: 10
-            md_bg_color: 1, 1, .1, .5
+            md_bg_color: .4, .3, .9, 1
 
             ScrollView:
                 do_scroll_y: True
@@ -92,20 +98,22 @@
                     spacing: "10dp"
                     size_hint_y: None
                     height: self.minimum_height
-                    # pos_hint: {"center_x": 0.5, "center_y": 0.8}
-                    MDTextField:
-                        id: qr_data_field
-                        text: ""
-                        hint_text: "QR code data"
-                        helper_text: "Enter QR code Data"
-                        helper_text_mode: "on_focus"
-                        size_hint_x: 0.97
-                        pos_hint: {"center_x": 0.5, "center_y": 0.5}
-                        mode: "rectangle"
-                        icon_right: "qrcode"
-                        max_text_length: 150
-                        # on_focus: text_input_card.pos_hint = {"center_x": 0.5, "center_y": 0.43} if qr_data_field.focus else {"center_x": 0.5, "center_y": 0.32}
-                        # on_focus: top_app_bar.title = qr_data_field.text  if qr_data_field.focus else "Generate Advanced QR"
+                    MDBoxLayout:
+                        orientation: 'vertical'
+                        adaptive_height: True  # This ensures dynamic height adjustment
+                        md_bg_color: .4, .3, .9, 1
+                        MDTextField:
+                            id: qr_data_field
+                            text: ""
+                            hint_text: "QR code data"
+                            helper_text: "Enter QR code Data"
+                            helper_text_mode: "on_focus"
+                            size_hint_x: 0.97
+                            pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                            mode: "rectangle"
+                            icon_right: "qrcode"
+                            max_text_length: 150
+                            required: False
 
                     MDBoxLayout:
                         orientation: 'horizontal'
@@ -179,23 +187,26 @@
                             canvas.after:
                                 Color:
                                     rgba: app.icon_brush_color
-                                Line:
                                 Ellipse:
-                                    pos: self.center_x + 10 , self.center_y - 11
-                                    size: 5, 5
+                                    pos: Icon_brush.right-10, Icon_brush.center_y-10
+                                    size: Icon_brush.size[0] * 0.2 ,Icon_brush.size[1] * 0.2
 
-                    MDTextField:
-                        id: icon_field
-                        text: "facebook" if Icon_switch.active else ""
-                        hint_text: "any social media icon or paste link"
-                        helper_text: "Icon be centered of QR code"
-                        helper_text_mode: "on_focus"
-                        max_text_length: 24
-                        size_hint_x: 0.97
-                        pos_hint: {"center_x": 0.5, "center_y": 0.5}
-                        mode: "rectangle"
-                        icon_right: "facebook" if self.text == '' else self.text
-                        disabled: True
+                    MDBoxLayout:
+                        orientation: 'vertical'
+                        adaptive_height: True  # This ensures dynamic height adjustment
+                        md_bg_color: .4, .3, .9, 1
+                        MDTextField:
+                            id: icon_field
+                            text: "facebook" if Icon_switch.active else ""
+                            hint_text: "any social media icon or paste link" 
+                            helper_text: "Icon be centered of QR code"
+                            helper_text_mode: "on_focus"
+                            max_text_length: 24
+                            size_hint_x: 0.97
+                            pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                            mode: "rectangle"
+                            icon_right: "facebook" if self.text == '' else self.text
+                            disabled: True
 
                     MDBoxLayout:
                         orientation: 'horizontal'
@@ -207,7 +218,7 @@
                         md_bg_color: 0, 1, .4, 0
 
                         MDLabel:
-                            text: "  Add Footer to QR"
+                            text: "  Add Footer text"
                             theme_text_color: "Custom"
                             
                             text_color: app.theme_cls.primary_color
@@ -229,30 +240,32 @@
                             halign: "left"
                         MDIconButton:
                             id: footer_brush
-                            
                             icon: "brush"
                             on_release: app.open_color_picker(set_color_to='footer_brush_color')
                             canvas.after:
                                 Color:
                                     rgba: app.footer_brush_color
-                                Line:
                                 Ellipse:
-                                    pos: self.center_x + 10 , self.center_y - 11
-                                    size: 5, 5
+                                    pos: footer_brush.right-10, footer_brush.center_y-10
+                                    size: footer_brush.size[0] * 0.2 ,footer_brush.size[1] * 0.2
                     
-                    MDTextField:
-                        id: footer_field
-                        text: app.qr_code_description  if footer_switch.active else ""
-                        hint_text: "Footer Text"
-                        helper_text: "footer-line for QR code"
-                        helper_text_mode: "on_focus"
-                        max_text_length: 22
-                        on_text: self.text = self.text[:self.max_text_length]
-                        size_hint_x: 0.97
-                        pos_hint: {"center_x": 0.5, "center_y": 0.5}
-                        mode: "rectangle"
-                        icon_right: "text-box"
-                        disabled: True
+                    MDBoxLayout:
+                        orientation: 'vertical'
+                        adaptive_height: True  # This ensures dynamic height adjustment
+                        md_bg_color: .4, .3, .9, 1
+                        MDTextField:
+                            id: footer_field
+                            text: app.qr_code_description  if footer_switch.active else ""
+                            hint_text: "Footer Text"
+                            helper_text: "footer-line for QR code"
+                            helper_text_mode: "on_focus"
+                            max_text_length: 22
+                            on_text: self.text = self.text[:self.max_text_length]
+                            size_hint_x: 0.97
+                            pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                            mode: "rectangle"
+                            icon_right: "text-box"
+                            disabled: True
 
                     MDLabel:
                         text: ""
@@ -261,7 +274,10 @@
 
         MDIconButton:
             icon: "auto-fix"
-            pos_hint: {"center_x": 0.92,"center_y": 0.57}
+            
+            # pos_hint: {"center_x": 0.92,None}
+            x: text_input_card.width - 50
+            y: text_input_card.top
             md_bg_color: 1, 1, 0, 1  
             on_release: 
                 app.qr_code_data = qr_data_field.text
@@ -271,7 +287,7 @@
                 app.generate_qr_code_icon()
             canvas.before:
                 Color:
-                    rgba: 1, 1, 1, 1
+                    rgba: app.theme_cls.bg_dark
                 Line:
                     circle: (self.center_x, self.center_y, self.width * 0.6)
                     width: dp(4)
@@ -283,7 +299,7 @@
             height: "80dp"
             pos_hint: {"center_x": 0.5, "center_y": 0.07}
             # elevation: 10
-            md_bg_color: 1, 1, .1, .5
+            md_bg_color: .4, .3, .9, 1
 
             ScrollView:
                 do_scroll_x: True
@@ -301,7 +317,7 @@
 
                     SelectableImage:
                         id: img7
-                        source: "kv/color-picker-qr.png"
+                        source: "assets/color-picker-qr.png"
                         selected: True
                         color_code: 0, 0, 0
                         on_release: 
@@ -317,7 +333,7 @@
 
                     SelectableImage:
                         id: img6
-                        source: "kv/qr_code_20210919123461.png"
+                        source: "assets/qr_code_20210919123461.png"
                         color_code: 0, 0, 0
                         on_release: 
                             print("Image clicked")
@@ -332,7 +348,7 @@
 
                     SelectableImage:
                         id: img5
-                        source: "kv/qr_code_20210919123460.png"
+                        source: "assets/qr_code_20210919123460.png"
                         color_code: 238, 252, 40
                         on_release: 
                             app.fit_display_source = img5.source
@@ -347,7 +363,7 @@
 
                     SelectableImage:
                         id: img1
-                        source: "kv/qr_code_20210919123456.png"
+                        source: "assets/qr_code_20210919123456.png"
                         color_code: 217, 37, 217
                         on_release: 
                             app.fit_display_source = img1.source
@@ -362,7 +378,7 @@
 
                     SelectableImage:
                         id: img2
-                        source: "kv/qr_code_20210919123457.png"
+                        source: "assets/qr_code_20210919123457.png"
                         color_code: 36, 56, 237
                         on_release: 
                             app.fit_display_source = img2.source
@@ -377,7 +393,7 @@
 
                     SelectableImage:
                         id: img3
-                        source: "kv/qr_code_20210919123458.png"
+                        source: "assets/qr_code_20210919123458.png"
                         color_code: 245, 100, 22
                         on_release: 
                             app.fit_display_source = img3.source
@@ -392,7 +408,7 @@
                     
                     SelectableImage:
                         id: img4
-                        source: "kv/qr_code_20210919123459.png"
+                        source: "assets/qr_code_20210919123459.png"
                         color_code: 130, 247, 27
                         on_release: 
                             app.fit_display_source = img4.source

@@ -10,10 +10,10 @@ package.name = barcode
 package.domain = org.barcode
 
 # (str) Source code where the main.py live
-source.dir = ./barcode
+source.dir = ./DOCUMENT-SCANNER-APP/barcode
 
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py,png,jpg,kv,atlas,ttf
+source.include_exts = py,png,jpg,kv,atlas,ttf,json
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png
@@ -29,7 +29,7 @@ source.include_exts = py,png,jpg,kv,atlas,ttf
 #source.exclude_patterns = license,images/*/*.jpg
 
 # (str) Application versioning (method 1)
-version = 0.1
+version = 0.2
 
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]
@@ -37,32 +37,17 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = 
-python3==3.12.3,
-certifi==2024.8.30,
-charset-normalizer==3.4.0,
-docutils==0.21.2,
-idna==3.10,
-Kivy==2.3.0,
-Kivy-Garden==0.1.5,
-kivymd==1.2.0,
-pillow==11.0.0,
-Pygments==2.18.0,
-python-barcode==0.15.1,
-qrcode==8.0,
-requests==2.32.3,
-segno==1.6.1,
-urllib3==2.2.3
+requirements = python3,certifi==2024.8.30,charset-normalizer==3.4.0,docutils==0.21.2,idna==3.10,Kivy==2.3.0,Kivy-Garden==0.1.5,kivymd==1.2.0,pillow==11.0.0,Pygments==2.18.0,python-barcode==0.15.1,qrcode==8.0,requests==2.32.3,segno==1.6.1,urllib3==2.2.3
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
 # requirements.source.kivy = ../../kivy
 
 # (str) Presplash of the application
-#presplash.filename = %(source.dir)s/data/presplash.png
+# presplash.filename = %(source.dir)s/data/presplash.png
 
 # (str) Icon of the application
-#icon.filename = %(source.dir)s/data/icon.png
+icon.filename = %(source.dir)s/assets/icon.png
 
 # (list) Supported orientations
 # Valid options are: landscape, portrait, portrait-reverse or landscape-reverse
@@ -102,7 +87,7 @@ fullscreen = 0
 # see https://lottiefiles.com/ for examples and https://airbnb.design/lottie/
 # for general documentation.
 # Lottie files can be created using various tools, like Adobe After Effect or Synfig.
-#android.presplash_lottie = "path/to/lottie/file.json"
+android.presplash_lottie = %(source.dir)s/assets/anim.json
 
 # (str) Adaptive icon of the application (used if Android API level is 26+ at runtime)
 #icon.adaptive_foreground.filename = %(source.dir)s/data/icon_fg.png

@@ -21,6 +21,7 @@ from kivy.properties import BooleanProperty, StringProperty , ListProperty
 from kivymd.uix.pickers import MDColorPicker
 from typing import Union
 import threading
+from datetime import datetime
 #
 from kivy.animation import Animation
 from kivy.uix.modalview import ModalView
@@ -36,7 +37,7 @@ import codegen
 
 if platform == 'android':
     from android import mActivity
-    from androidstorage4kivy import SharedStorage, Chooser, ShareSheet
+    from androidstorage4kivy2 import SharedStorage, Chooser, ShareSheet
 
 # create ./src folder
 if not os.path.exists('./src'):
@@ -263,6 +264,8 @@ class MyApp(MDApp):
         if not os.path.exists(file):
             self.toast("❌ File not found")
             return
+        def get_time() -> str:
+            return datetime.now().strftime("%Y%m%d%H%M%S")
         # open _modal
         _modal.open()
         def _share():
@@ -274,7 +277,14 @@ class MyApp(MDApp):
 
                 # create a file in Private storage
                 # filename = join(SharedStorage().get_cache_dir(),'ico.png')
-                filename = SharedStorage().copy_to_shared(file)
+                # copy the file to a new name , then share it
+                with open(file, 'rb') as f:
+                    new_file_name = os.path.join(file,f'{get_time()}.png')
+                    with open(new_file_name, 'wb') as nf:
+                        nf.write(f.read())
+                        nf.close()
+                    f.close()
+                filename = SharedStorage().copy_to_shared(new_file_name)
                 # add to uris list
                 print('uri',': ',filename,)
                 try:
@@ -282,7 +292,7 @@ class MyApp(MDApp):
                 except Exception as e: print(e)
                 self.uris.append(filename)
                 Clock.schedule_once(lambda x : _modal.dismiss(),.2)
-                # ShareSheet().share_file(filename)
+                ShareSheet().share_file(filename)
             except Exception as e:
                 print(e)
                 Clock.schedule_once(lambda dt :self.toast("❌ Couldn't share file"),.2)

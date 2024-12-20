@@ -6,7 +6,9 @@
 /env
 /barcode/src
 /barcode/.vscode
-/barcode/kv/*.png
 /barcode/favicons
+/barcode/test2.py
 # /barcode/hotreload.py
 /barcode/test.py
+/barcode/textfield.py
+/barcode/share

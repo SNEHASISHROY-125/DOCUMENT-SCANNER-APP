@@ -264,7 +264,7 @@ class MyApp(MDApp):
             self.toast("❌ File not found")
             return
         # open _modal
-        # _modal.open()
+        _modal.open()
         def _share():
             try:
                 if platform == 'android':
@@ -276,13 +276,17 @@ class MyApp(MDApp):
                 # filename = join(SharedStorage().get_cache_dir(),'ico.png')
                 filename = SharedStorage().copy_to_shared(file)
                 # add to uris list
+                print('uri',': ',filename,)
+                try:
+                    print('exists: ',os.path.exists(filename))
+                except Exception as e: print(e)
                 self.uris.append(filename)
-                ShareSheet().share_file(filename)
-                # Clock.schedule_once(lambda x : _modal.dismiss(),.2)
+                Clock.schedule_once(lambda x : _modal.dismiss(),.2)
+                # ShareSheet().share_file(filename)
             except Exception as e:
                 print(e)
                 Clock.schedule_once(lambda dt :self.toast("❌ Couldn't share file"),.2)
-                # Clock.schedule_once(lambda x : _modal.dismiss(),.2)
+                Clock.schedule_once(lambda x : _modal.dismiss(),.2)
         #
         Thread(target=_share).start()
 

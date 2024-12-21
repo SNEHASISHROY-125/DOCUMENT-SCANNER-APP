@@ -37,13 +37,14 @@ import codegen
 
 if platform == 'android':
     from android import mActivity
-    from androidstorage4kivy2 import SharedStorage, Chooser, ShareSheet
+    from androidstorage4kivymod import SharedStorage, Chooser, ShareSheet
 
 # create ./src folder
 if not os.path.exists('./src'):
     os.makedirs('./src')
     os.makedirs('./src/qr')
     os.makedirs('./src/pdf')
+    os.makedirs('./src/_cache')    # _cache | temp files to be deleted on_pre_leave
 
 
 
@@ -156,6 +157,8 @@ class MyApp(MDApp):
             screen.ids.top_app_bar.title = "Scan Codes"
         elif instance_tab.name == 'home_tab':
             screen.ids.top_app_bar.title = "Create Codes"
+        elif instance_tab.name == 'document_tab':
+            screen.ids.top_app_bar.title = "Scan Documents"
         else:
             screen.ids.top_app_bar.title = "All Services"
         print(instance_tab.name)
@@ -219,10 +222,10 @@ class MyApp(MDApp):
         #
         global Preview_modal
         if not Preview_modal:
-            Preview_modal = ModalView(size_hint=(.5, .5), auto_dismiss=True, background='', background_color=[0, 0, 0, 0],)
-            self.image_widget = Image(source='', anim_delay=0.03)  # Load and play the GIF
+            Preview_modal = ModalView(size_hint=(.7, .7), auto_dismiss=True, background='', background_color=[0, 0, 0, 0],)
+            self.image_widget = Image(source='', anim_delay=0.03,allow_stretch=True,keep_ratio=True)  # Load and play the GIF
             Preview_modal.add_widget(self.image_widget)
-            Preview_modal.bind(on_open=self.preview_modal_open, on_dismiss=self.preview_modal_dismiss)
+            Preview_modal.bind(on_open=self.preview_modal_open, on_dismiss=self.preview_modal_dismiss,on_touch_up=Preview_modal.dismiss)
         #
         # hotreload ->
         global color_picker
@@ -275,27 +278,32 @@ class MyApp(MDApp):
                     if not check_permission(Permission.READ_EXTERNAL_STORAGE) or not check_permission(Permission.WRITE_EXTERNAL_STORAGE):
                         request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
-                # create a file in Private storage
-                # filename = join(SharedStorage().get_cache_dir(),'ico.png')
+                ## create a file in Private storage
+
                 # copy the file to a new name , then share it
                 with open(file, 'rb') as f:
-                    new_file_name = os.path.join(file,f'{get_time()}.png')
+                    new_file_name = os.path.join('src/_cache',f'{get_time()}.png')
                     with open(new_file_name, 'wb') as nf:
                         nf.write(f.read())
                         nf.close()
                     f.close()
-                filename = SharedStorage().copy_to_shared(new_file_name)
+                # copy to shared storage and get the uri
+                if platform == 'android':
+                    filename = SharedStorage().copy_to_shared(new_file_name)
+                    self.uris.append(filename)
                 # add to uris list
-                print('uri',': ',filename,)
-                try:
-                    print('exists: ',os.path.exists(filename))
-                except Exception as e: print(e)
-                self.uris.append(filename)
-                Clock.schedule_once(lambda x : _modal.dismiss(),.2)
-                ShareSheet().share_file(filename)
+                # print('uri',': ',filename,)
+                # try:
+                #     print('exists: ',os.path.exists(filename))
+                # except Exception as e: print(e)
+                if platform == 'android':
+                    ShareSheet().share_file(filename)
             except Exception as e:
                 print(e)
                 Clock.schedule_once(lambda dt :self.toast("❌ Couldn't share file"),.2)
+                Clock.schedule_once(lambda x : _modal.dismiss(),.2)
+            finally:
+                os.remove(new_file_name)
                 Clock.schedule_once(lambda x : _modal.dismiss(),.2)
         #
         Thread(target=_share).start()

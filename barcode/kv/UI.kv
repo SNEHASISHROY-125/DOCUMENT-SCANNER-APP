@@ -1,5 +1,5 @@
 
-<MainScreen@Screen>
+<MainScreen1@Screen>
     MDBoxLayout:
         orientation: 'vertical'
         padding: dp(10)
@@ -35,3 +35,75 @@
             MDIconButton:
                 icon: "information"
                 # on_release: app.show_dialog()
+
+<MainScreen@Screen>
+    BoxLayout:
+        orientation: 'vertical'
+        MDTopAppBar:
+            id: top_app_bar
+            title: "Create Barcode, QR Code, and Scan Documents"
+            pos_hint: {"top": 1}
+            # right_action_items: [["dots-vertical", lambda x: app.refresh_files()]]
+            md_bg_color: 1, 1, 1, 0.2  # Set the transparency by adjusting the alpha value (last value)
+
+        MDBottomNavigation:
+            id: bottom_nav
+            # on_switch_tabs: app.on_tab_switch(*args)
+
+            
+        
+            MDBottomNavigationItem:
+                name: 'document_tab'
+                text: "Document"
+                icon: "camera-iris"
+                badge_icon: ""
+                icon_color: app.theme_cls.primary_color
+                Screen:
+                    name: 'doc_scaner'
+                    BoxLayout:
+                        padding: dp(10)
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.7}
+                        size_hint: None, None
+                        size: dp(300), dp(300)
+                        Image:
+                            s: 'https://www.freepik.com/icon/scanning_10256279#fromView=search&page=1&position=66&uuid=47a39f87-3dcb-4a50-9011-548e22eee8c1'
+                            source: 'assets/scanning.png'
+                            allow_stretch: True
+                            keep_ratio: True
+
+                    MDLabel:
+                        text: 'Comming Soon'
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.2}
+                        font_size: '30sp'
+                        halign: 'center'
+                        bold: True
+                        theme_text_color: "Custom"
+                        text_color: app.theme_cls.primary_color
+                    
+        
+            MDBottomNavigationItem:
+                name: 'scaner_tab'
+                text: "scaner"
+                icon: "line-scan"
+                badge_icon: ""
+                icon_color: app.theme_cls.primary_color
+                Screen:
+                    name: 'scaner'
+                    BoxLayout
+                        padding: dp(10)
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.7}
+                        size_hint: None, None
+                        size: dp(300), dp(300)
+                        Image:
+                            s:'https://www.freepik.com/icon/internet_922119#fromView=popular&page=3&position=36&uuid=820da64e-0de5-4de1-97e8-bbf7c0e12c87'
+                            source: 'assets/internet.png'
+                            allow_stretch: True
+                            keep_ratio: True
+                    MDLabel:
+                        text: 'Comming Soon'
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.2}
+                        font_size: '30sp'
+                        halign: 'center'
+                        bold: True
+                        theme_text_color: "Custom"
+                        text_color: app.theme_cls.primary_color

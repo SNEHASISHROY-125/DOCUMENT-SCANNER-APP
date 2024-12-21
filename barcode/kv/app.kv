@@ -39,16 +39,33 @@ ScreenManager:
                     on_release: app.generate_codes()
         
             MDBottomNavigationItem:
-                name: 'scaner_tab'
+                name: 'document_tab'
                 text: "Document"
                 icon: "camera-iris"
                 badge_icon: ""
                 icon_color: app.theme_cls.primary_color
                 Screen:
                     name: 'doc_scaner'
+                    BoxLayout:
+                        padding: dp(10)
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.7}
+                        size_hint: None, None
+                        size: dp(300), dp(300)
+                        Image:
+                            s: 'https://www.freepik.com/icon/scanning_10256279#fromView=search&page=1&position=66&uuid=47a39f87-3dcb-4a50-9011-548e22eee8c1'
+                            source: 'assets/scanning.png'
+                            allow_stretch: True
+                            keep_ratio: True
+
                     MDLabel:
-                        text: 'Document Scaner Screen'
+                        text: 'Comming Soon'
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.2}
+                        font_size: '30sp'
                         halign: 'center'
+                        bold: True
+                        theme_text_color: "Custom"
+                        text_color: app.theme_cls.primary_color
+                    
         
             MDBottomNavigationItem:
                 name: 'scaner_tab'
@@ -58,13 +75,24 @@ ScreenManager:
                 icon_color: app.theme_cls.primary_color
                 Screen:
                     name: 'scaner'
+                    BoxLayout
+                        padding: dp(10)
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.7}
+                        size_hint: None, None
+                        size: dp(300), dp(300)
+                        Image:
+                            s:'https://www.freepik.com/icon/internet_922119#fromView=popular&page=3&position=36&uuid=820da64e-0de5-4de1-97e8-bbf7c0e12c87'
+                            source: 'assets/internet.png'
+                            allow_stretch: True
+                            keep_ratio: True
                     MDLabel:
-                        text: 'Scaner Screen'
+                        text: 'Comming Soon'
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.2}
+                        font_size: '30sp'
                         halign: 'center'
-                    MDRaisedButton:
-                        text: 'Back to Menu'
-                        pos_hint: {'center_x': 0.5, 'center_y': 0.4}
-                        on_release: app.root.current = 'menu'
+                        bold: True
+                        theme_text_color: "Custom"
+                        text_color: app.theme_cls.primary_color
 
             
 

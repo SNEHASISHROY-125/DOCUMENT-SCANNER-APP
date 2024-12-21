@@ -25,7 +25,7 @@ class CustomCard(MDCard):
 
 class MainApp(MDApp):
     # KV_FILES = [os.path.join(KV_DIR, kv_file) for kv_file in os.listdir(KV_DIR) if kv_file.endswith(".kv")]
-    KV_FILES = [[os.path.join(KV_DIR, "main.kv"),os.path.join('quick_create.kv'),os.path.join('CustomCard.kv')][2]]
+    KV_FILES = [[os.path.join(KV_DIR, "main.kv"),os.path.join(KV_DIR, "UI.kv"),os.path.join('quick_create.kv'),os.path.join('CustomCard.kv')][1]]
     DEBUG = True
 
     # app-internals
@@ -55,7 +55,7 @@ class MainApp(MDApp):
         self._init_loading_widget()
         # return Builder.load_file(self.KV_FILES[0])
         self.theme_cls.theme_style = "Dark"
-        return Factory.AdvancedQRScreen()
+        return Factory.MainScreen()
     
     def _init_loading_widget(self):
         ''' Initialize the loading widget '''

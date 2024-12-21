@@ -55,7 +55,7 @@
         title: "Generate Advanced QR"
         pos_hint: {"top": 1}
         md_bg_color: app.theme_cls.primary_color  # Set the transparency by adjusting the alpha value (last value)
-        left_action_items: [["arrow-left", lambda x: (setattr(app.root, 'current', 'home'), setattr(app.theme_cls, 'primary_palette', 'Teal'))]]
+        left_action_items: [["arrow-left", lambda x: (setattr(app.root, 'current', 'home'), setattr(app.theme_cls, 'primary_palette', 'Teal'),app.set_bars_colors())]]
 
     MDFloatLayout:
         
@@ -188,7 +188,7 @@
                                 Color:
                                     rgba: app.icon_brush_color
                                 Ellipse:
-                                    pos: Icon_brush.right-10, Icon_brush.center_y-10
+                                    pos: Icon_brush.right - Icon_brush.size[0] * 0.4, Icon_brush.center_y - Icon_brush.size[1] * 0.2
                                     size: Icon_brush.size[0] * 0.2 ,Icon_brush.size[1] * 0.2
 
                     MDBoxLayout:
@@ -246,7 +246,7 @@
                                 Color:
                                     rgba: app.footer_brush_color
                                 Ellipse:
-                                    pos: footer_brush.right-10, footer_brush.center_y-10
+                                    pos: footer_brush.right - footer_brush.size[0] * 0.4, footer_brush.center_y - footer_brush.size[1] * 0.2
                                     size: footer_brush.size[0] * 0.2 ,footer_brush.size[1] * 0.2
                     
                     MDBoxLayout:
@@ -276,7 +276,7 @@
             icon: "auto-fix"
             
             # pos_hint: {"center_x": 0.92,None}
-            x: text_input_card.width - 50
+            x: text_input_card.width - self.width * 1.2
             y: text_input_card.top
             md_bg_color: 1, 1, 0, 1  
             on_release: 
@@ -287,7 +287,7 @@
                 app.generate_qr_code_icon()
             canvas.before:
                 Color:
-                    rgba: app.theme_cls.bg_dark
+                    rgba: 18/255, 18/255, 18/255,1 #app.theme_cls.bg_dark
                 Line:
                     circle: (self.center_x, self.center_y, self.width * 0.6)
                     width: dp(4)

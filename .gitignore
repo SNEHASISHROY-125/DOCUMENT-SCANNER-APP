@@ -13,3 +13,6 @@
 /barcode/textfield.py
 /barcode/share
 # /barcode/androidstorage4kivy
+/test_app/
+/FORM_DATA/destination/
+FORM_DATA/source/

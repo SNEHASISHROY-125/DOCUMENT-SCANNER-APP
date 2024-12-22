@@ -14,7 +14,7 @@ This project is a Barcode and QR Code Scanner and Generator application built us
 
 ## Demo
 
-![Demo](./barcode/assets/gif.gif)
+![Demo](./assets/demo.gif)
 
 ## Packaging
 
@@ -55,7 +55,13 @@ To Compile it to apk run
 
 ## Screenshots
 
-![App Screenshot](https://via.placeholder.com/468x300?text=App+Screenshot+Here)
+![App Screenshot 2](./assets/Screenshot_2.jpg)
+![App Screenshot 1](./assets/Screenshot_1.jpg)
+![App Screenshot 3](./assets/Screenshot_3.jpg)
+![App Screenshot 6](./assets/Screenshot_6.jpg)
+![App Screenshot 5](./assets/Screenshot_5.jpg)
+![App Screenshot 7](./assets/Screenshot_7.jpg)
+![App Screenshot 8](./assets/Screenshot_8.jpg)
 
 ## License
 

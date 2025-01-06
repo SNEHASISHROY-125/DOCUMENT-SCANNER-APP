@@ -7,8 +7,10 @@ from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
+from kivy.uix.image import Image
 from os.path import join
 from kivy.utils import platform
+from kivy.properties import StringProperty
 if platform == 'android':
     from android import mActivity
 from android_permissions import AndroidPermissions
@@ -17,6 +19,7 @@ from androidstorage4kivy import SharedStorage, Chooser, ShareSheet
 
 class ShareSendExample(App):
     uris = []
+    _source = StringProperty('ico.png')
     def build(self):
         self.test_uri = None
         Window.bind(on_keyboard = self.quit_app)
@@ -29,6 +32,7 @@ class ShareSendExample(App):
         b4 = Button(text='Choose a video to share with the\n' +\
                     'share_recieve_example, which must be installed.',
                     on_press=self.button4_pressed)
+        I = Image(source=self._source)
         b5 = Button(text='Share  the icon',
                     on_press=self.button5_pressed)
         box = BoxLayout(orientation='vertical')
@@ -36,17 +40,18 @@ class ShareSendExample(App):
         box.add_widget(b2)
         box.add_widget(b3)
         box.add_widget(b4)
+        box.add_widget(I)
         box.add_widget(b5)
         self.box = box
         return box
 
     ### Start if permissions granted ###
     
-    def on_start(self):
-        self.dont_gc = AndroidPermissions(self.start_app)
+    def on_start(self): ...
+        # self.dont_gc = AndroidPermissions(self.start_app)
         
     def start_app(self):
-        self.dont_gc = None
+        # self.dont_gc = None
         self.test_uri = self.create_test_uri()
 
     ### User Events ####
@@ -67,8 +72,8 @@ class ShareSendExample(App):
 
     def button4_pressed(self,b):
         self.target = 'org.test.receive'
-        self.chooser = Chooser(self.chooser_callback)
-        self.chooser.choose_content('video/*')
+        self.chooser = Chooser(self._chooser_callback)
+        self.chooser.choose_content('image/*') 
         self.button_reset(b)
     
     def button5_pressed(self,b):
@@ -96,10 +101,19 @@ class ShareSendExample(App):
             return False
 
     ### Callback ####
-    
+
     def chooser_callback(self,uri_list):
         ShareSheet().share_file_list(uri_list, self.target)
         del self.chooser
+    
+    def _chooser_callback(self,uri_list):
+        # ShareSheet().share_file_list(uri_list, self.target)
+        # del self.chooser
+        try:
+            print(uri_list,'type:',type(uri_list[0]))
+            self._source = uri_list[0]
+        except Exception as e:
+            print(e)
 
     ### Utilities ####
 

@@ -111,7 +111,9 @@ class ShareSendExample(App):
         # del self.chooser
         try:
             print(uri_list,'type:',type(uri_list[0]))
-            self._source = uri_list[0]
+            # copy to shared storage
+            
+            # self._source = uri_list[0]
         except Exception as e:
             print(e)
 

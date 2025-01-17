@@ -6,7 +6,12 @@
 <AdvancedQRScreen@Screen>:
     name: 'advanced_qr'
 
-    FitImage:
+    MDIconButton:
+        icon: "arrow-left"
+        pos_hint: {"center_x": 0.1, "center_y": 0.87}
+        on_release: app.root.current = 'home'
+        # md_bg_color: 1, 1, 0, 1
+    AsyncImage:
         id : fit
         source: app.fit_display_source
         size_hint: None, None
@@ -50,12 +55,24 @@
                 size: self.texture_size[0] * 0.9, self.texture_size[1] * 0.9
                 pos: self.pos
 
-    MDTopAppBar:
-        id: top_app_bar
-        title: "Generate Advanced QR"
+    MDCard:
+        size_hint: 1 ,None
+        height: "60dp"
         pos_hint: {"top": 1}
-        md_bg_color: app.theme_cls.primary_color  # Set the transparency by adjusting the alpha value (last value)
-        left_action_items: [["arrow-left", lambda x: (setattr(app.root, 'current', 'home'), setattr(app.theme_cls, 'primary_palette', 'Teal'),app.set_bars_colors())]]
+        radius: [0, 0, 0, 0]
+        # AsyncImage:
+        #     source: "assets/qr_code_20210919123456.png"
+        MDLabel:
+            text: "Ads here"
+            halign: "center"
+    
+        
+    # MDTopAppBar:
+    #     id: top_app_bar
+    #     title: "Generate Advanced QR"
+    #     pos_hint: {"top": 1}
+    #     md_bg_color: app.theme_cls.primary_color  # Set the transparency by adjusting the alpha value (last value)
+    #     left_action_items: [["arrow-left", lambda x: (setattr(app.root, 'current', 'home'), setattr(app.theme_cls, 'primary_palette', 'Teal'),app.set_bars_colors())]]
 
     MDFloatLayout:
         
@@ -85,7 +102,7 @@
             height: "300dp"
             pos_hint: {"center_x": 0.5, "center_y": 0.33}
             # elevation: 10
-            md_bg_color: .4, .3, .9, 1
+            md_bg_color: rgba(102, 76, 229)  #.4, .3, .9, 1
 
             ScrollView:
                 do_scroll_y: True
@@ -110,10 +127,107 @@
                             helper_text_mode: "on_focus"
                             size_hint_x: 0.97
                             pos_hint: {"center_x": 0.5, "center_y": 0.5}
-                            mode: "rectangle"
+                            mode: "round"
                             icon_right: "qrcode"
                             max_text_length: 150
                             required: False
+
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint_x: 0.97
+                        size_hint_y: None
+                        height: self.minimum_height
+                        pos_hint: {'center_x': 0.5,'center_y': 0.5}
+                       
+                        md_bg_color: 0, 1, .4, 0
+
+                        MDLabel:
+                            text: "  Awesome Animated QR ?"
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.primary_color
+                            size_hint_x: 0.8
+                            halign: "left"
+                        MDLabel:
+                            text: ""
+                            size_hint_x: 0.07
+                            halign: "left"
+                        MDCheckbox:
+                            id: Awesome_switch
+                            group: "micro"
+                            size_hint_x: 0.2
+                            # pos_hint: {"center_y": 0.33} 
+                            on_active: 
+                                # app.qr_code_micro = Micro_switch.active
+                                print(Micro_switch.active)
+
+                            
+                        # MDLabel:
+                        #     text: ""
+                        #     size_hint_x: 0.23
+                        #     halign: "left"
+                        MDIconButton:
+                            id: info
+                            icon: "information"
+                            # canvas.after:
+                    MDBoxLayout:
+                        # orientation: 'vertical'
+                        adaptive_height: True  # This ensures dynamic height adjustment
+                        md_bg_color: .4, .3, .9, 1
+                        MDLabel:
+                            text: ""
+                            size_hint_x: 0.023
+                            halign: "left"
+                        MDTextField:
+                            id: url_field
+                            text: ""
+                            hint_text: "Enter hosted file URL"
+                            helper_text: "should be direct link to file"
+                            helper_text_mode: "on_focus"
+                            # size_hint_x: 0.7
+                            pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                            mode: "round"
+                            icon_right: "file"
+                            disabled: True if not  Awesome_switch.active else False
+                            max_text_length: 150
+                            required: False
+                        MDIconButton:
+                            id: web_sync
+                            icon: "web-sync"
+                            disabled: True if not Awesome_switch.active else False
+                            on_release: 
+                                file_picker_card.disabled = True if not file_picker_card.disabled else False
+                                app._verify_and_fetch_from_url(url_field.text)
+                            # canvas.after:
+                        
+                    
+                    MDBoxLayout:
+                        orientation: 'vertical'
+                        size_hint_x: 0.97
+                        size_hint_y: None
+                        height: self.minimum_height
+                        pos_hint: {'center_x': 0.5,'center_y': 0.5}
+                        padding: [0, 10, 0, 0]
+                        spacing: "10dp"
+                        md_bg_color: 0, 1, .4, 0
+                        MDLabel:
+                            text: "OR Pick A File"
+                            font_size: "15sp"
+                            bold: True
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.primary_color
+                            size_hint_x: 0.8
+                            halign: "center"
+                        MDCard:
+                            id: file_picker_card
+                            size_hint: 1 ,None
+                            height: "200dp"
+                            pos_hint: {"top": 1}
+                            radius: [0, 0, 0, 10]
+                            md_bg_color: 0, 1, .4, 0
+                            disabled: True if not Awesome_switch.active else False
+                            on_release: print("Card clicked")
+                            AsyncImage:
+                                source: "assets/upload.png"
 
                     MDBoxLayout:
                         orientation: 'horizontal'
@@ -198,13 +312,14 @@
                         MDTextField:
                             id: icon_field
                             text: "facebook" if Icon_switch.active else ""
-                            hint_text: "any social media icon or paste link" 
+                            hint_text: "any social media icon" 
                             helper_text: "Icon be centered of QR code"
                             helper_text_mode: "on_focus"
                             max_text_length: 24
                             size_hint_x: 0.97
                             pos_hint: {"center_x": 0.5, "center_y": 0.5}
-                            mode: "rectangle"
+                            mode: "round"
+                            # radius: [20, 20, 20, 20]
                             icon_right: "facebook" if self.text == '' else self.text
                             disabled: True
 
@@ -263,7 +378,7 @@
                             on_text: self.text = self.text[:self.max_text_length]
                             size_hint_x: 0.97
                             pos_hint: {"center_x": 0.5, "center_y": 0.5}
-                            mode: "rectangle"
+                            mode: "round"
                             icon_right: "text-box"
                             disabled: True
 
@@ -274,11 +389,12 @@
 
         MDIconButton:
             icon: "auto-fix"
-            
+            id: generate_qr_btn
             # pos_hint: {"center_x": 0.92,None}
             x: text_input_card.width - self.width * 1.2
             y: text_input_card.top
-            md_bg_color: 1, 1, 0, 1  
+            md_bg_color: rgba(11, 41, 113)  #0, .3, 1, .4  
+            disabled: True
             on_release: 
                 app.qr_code_data = qr_data_field.text
                 app.qr_code_icon = icon_field.text
@@ -291,6 +407,16 @@
                 Line:
                     circle: (self.center_x, self.center_y, self.width * 0.6)
                     width: dp(4)
+        MDSpinner:
+            id: generate_qr_btn_spinner
+            size_hint: None, None
+            size: dp(46), dp(46)
+            # pos_hint: {"center_x": 0.92, "center_y": 0.07}
+            x: text_input_card.width - self.width * 1.2
+            y: text_input_card.top
+            active: True
+            # color: rgba(255, 165, 0)  # Orange color
+            # md_bg_color: 1, 1, 0, 1
                     
         MDCard:
             
@@ -299,14 +425,14 @@
             height: "80dp"
             pos_hint: {"center_x": 0.5, "center_y": 0.07}
             # elevation: 10
-            md_bg_color: .4, .3, .9, 1
+            md_bg_color: rgba(102, 76, 229)  #.4, .3, .9, 1
 
             ScrollView:
                 do_scroll_x: True
                 do_scroll_y: False
                 size_hint_y: None
                 height: dp(70)
-                md_bg_color: 1,1,1,0
+                # md_bg_color: 1,1,1,0
 
                 MDBoxLayout:
                     orientation: 'horizontal'

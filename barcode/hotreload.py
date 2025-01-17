@@ -25,7 +25,7 @@ class CustomCard(MDCard):
 
 class MainApp(MDApp):
     # KV_FILES = [os.path.join(KV_DIR, kv_file) for kv_file in os.listdir(KV_DIR) if kv_file.endswith(".kv")]
-    KV_FILES = [[os.path.join(KV_DIR, "main.kv"),os.path.join(KV_DIR, "UI.kv"),os.path.join('quick_create.kv'),os.path.join('CustomCard.kv')][1]]
+    KV_FILES = [[os.path.join(KV_DIR, "main.kv"),os.path.join(KV_DIR, "UI.kv"),os.path.join('quick_create.kv'),os.path.join('CustomCard.kv')][0]]
     DEBUG = True
 
     # app-internals
@@ -55,7 +55,40 @@ class MainApp(MDApp):
         self._init_loading_widget()
         # return Builder.load_file(self.KV_FILES[0])
         self.theme_cls.theme_style = "Dark"
-        return Factory.MainScreen()
+        return Factory.AdvancedQRScreen()
+    
+    def _verify_and_fetch_from_url(self, url:str):
+        # def _validate(url:str):
+        from urllib.request import urlopen
+        from PIL import Image
+        import tempfile
+        def _(url):
+            # Download the image from the URL
+            # url = 'https://ci3.googleusercontent.com/meips/ADKq_Nb8AgH6eOB3xeD5UFQEwsIuzmY8x9ngEA63u62xOr82ptFtVfPSz7Nb6UmgBJ8YXbvmEhhKKevYWSFL4gj2MCjlSaV66UiZtkbCv2y4RqcDyUkWeBmxnDWygWmckGwaJ-bF5z2nDIWXpAIIZRtCzL1cty_7uK6vZKXb=s0-d-e1-ft#https://m.media-amazon.com/images/G/01/outbound/OutboundTemplates/Amazon_logo_US._BG255,255,255_.png'
+            response = urlopen(url)
+            with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                tmp_file.write(response.read())
+                bg_file_path = tmp_file.name
+
+            # Check if the file exists
+            if os.path.isfile(bg_file_path):
+                print('yes a file', bg_file_path)
+                
+                # Determine the file type using Pillow
+                try:
+                    with Image.open(bg_file_path) as img:
+                        image_format = img.format.lower()
+                        if image_format in ['gif', 'png', 'jpg', 'jpeg']:
+                            print(f'The file is a valid image of type: {image_format}')
+                            # change Imge source
+                            Clock.schedule_once(lambda x: setattr(self,"fit_display_source" , bg_file_path), 0.1)
+                        else:
+                            print('The file is not a valid image.')
+                except (IOError, SyntaxError) as e:
+                    print('The file is not a valid image.')
+            else:
+                print('no a file')
+        threading.Thread(target=_,args=(url,)).start()
     
     def _init_loading_widget(self):
         ''' Initialize the loading widget '''

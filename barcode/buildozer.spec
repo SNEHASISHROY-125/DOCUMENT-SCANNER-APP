@@ -1,13 +1,13 @@
 [app]
 
 # (str) Title of your application
-title = Barcode Generater
+title = QRGenie Create beautiful QR & Barcodes
 
 # (str) Package name
-package.name = barcode
+package.name = QRGenie
 
 # (str) Package domain (needed for android/ios packaging)
-package.domain = org.barcode
+package.domain = io.github.snehasishroy-125.qrgenie
 
 # (str) Source code where the main.py live
 source.dir = ./DOCUMENT-SCANNER-APP/barcode

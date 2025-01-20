@@ -21,11 +21,28 @@ KV_DIR = os.path.join(os.path.dirname(__file__), "kv")
 
 class CustomCard(MDCard):
     # icon = StringProperty()
-    image_source = StringProperty()        
+    image_source = StringProperty()   
+
+from kivy.uix.screenmanager import Screen ###
+class HomeScreen(Screen):...   
+file_list = []
+
+Preview_modal = None
+from kivymd.uix.recycleview import MDRecycleView
+
+class CustomRecycleView(MDRecycleView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.data = [
+            {
+                'image_source': x,
+            } for x in file_list
+        ]
+
 
 class MainApp(MDApp):
     # KV_FILES = [os.path.join(KV_DIR, kv_file) for kv_file in os.listdir(KV_DIR) if kv_file.endswith(".kv")]
-    KV_FILES = [[os.path.join(KV_DIR, "main.kv"),os.path.join(KV_DIR, "UI.kv"),os.path.join('quick_create.kv'),os.path.join('CustomCard.kv')][0]]
+    KV_FILES = [[os.path.join(KV_DIR, "app.kv"),os.path.join(KV_DIR, "UI.kv"),os.path.join('quick_create.kv'),os.path.join('CustomCard.kv')][0]]
     DEBUG = True
 
     # app-internals
@@ -41,6 +58,11 @@ class MainApp(MDApp):
     qr_code_color = ListProperty([0,1,.2, 1])
     qr_code_micro = BooleanProperty(False)
     qr_save_dir = StringProperty("src/qr")
+    ### features | animated qr
+    web_sync_btn = ... # IconButton
+    file_picker_card  = ... # instance of MDCard
+    tempUrlFile = StringProperty()
+    tempUrlFile_ext = StringProperty()
 
     def build_app(self):  # hotreload-build
     # def build(self):
@@ -55,7 +77,13 @@ class MainApp(MDApp):
         self._init_loading_widget()
         # return Builder.load_file(self.KV_FILES[0])
         self.theme_cls.theme_style = "Dark"
-        return Factory.AdvancedQRScreen()
+        ###
+        for root, dirs, files in os.walk('./src'):
+            for file in files:
+                file_list.append(os.path.join(root, file))
+
+        print(file_list)
+        return Factory.HomeScreen()
     
     def _verify_and_fetch_from_url(self, url:str):
         # def _validate(url:str):
@@ -65,10 +93,15 @@ class MainApp(MDApp):
         def _(url):
             # Download the image from the URL
             # url = 'https://ci3.googleusercontent.com/meips/ADKq_Nb8AgH6eOB3xeD5UFQEwsIuzmY8x9ngEA63u62xOr82ptFtVfPSz7Nb6UmgBJ8YXbvmEhhKKevYWSFL4gj2MCjlSaV66UiZtkbCv2y4RqcDyUkWeBmxnDWygWmckGwaJ-bF5z2nDIWXpAIIZRtCzL1cty_7uK6vZKXb=s0-d-e1-ft#https://m.media-amazon.com/images/G/01/outbound/OutboundTemplates/Amazon_logo_US._BG255,255,255_.png'
-            response = urlopen(url)
-            with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-                tmp_file.write(response.read())
-                bg_file_path = tmp_file.name
+            try:
+                response = urlopen(url)
+                with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                    tmp_file.write(response.read())
+                    bg_file_path = tmp_file.name
+            except Exception as e:
+                print('The URL is not valid.')
+                # toast('The URL is not valid.')
+                return
 
             # Check if the file exists
             if os.path.isfile(bg_file_path):
@@ -80,12 +113,23 @@ class MainApp(MDApp):
                         image_format = img.format.lower()
                         if image_format in ['gif', 'png', 'jpg', 'jpeg']:
                             print(f'The file is a valid image of type: {image_format}')
+                            # set the image temp property
+                            self.tempUrlFile = bg_file_path
+                            self.tempUrlFile_ext = image_format
                             # change Imge source
                             Clock.schedule_once(lambda x: setattr(self,"fit_display_source" , bg_file_path), 0.1)
+                            # change button state | web_sync | file_picker_card
+                            Clock.schedule_once(lambda x: setattr(self.web_sync_btn,"disabled" , False), 0.1)
+                            Clock.schedule_once(lambda x: setattr(self.file_picker_card,"disabled" , False), 0.1)
                         else:
                             print('The file is not a valid image.')
                 except (IOError, SyntaxError) as e:
                     print('The file is not a valid image.')
+                    # change Imge source
+                    # Clock.schedule_once(lambda x: setattr(self,"fit_display_source" , bg_file_path), 0.1)
+                    # change button state | web_sync | file_picker_card
+                    Clock.schedule_once(lambda x: setattr(self.web_sync_btn,"disabled" , False), 0.1)
+                    Clock.schedule_once(lambda x: setattr(self.file_picker_card,"disabled" , False), 0.1)
             else:
                 print('no a file')
         threading.Thread(target=_,args=(url,)).start()
@@ -98,6 +142,8 @@ class MainApp(MDApp):
         global _modal
         _modal  =   ModalView(size_hint=(.8, .8), auto_dismiss=False, background='', background_color=[0, 0, 0, 0])
         _modal.add_widget(MDSpinner(line_width=dp(5.25), size_hint=(None, None), size=(120, 120), pos_hint={'center_x': .5, 'center_y': .5}, active=True))  # Load and play the GIF
+
+        
     
 
     def open_color_picker(self,set_color_to):

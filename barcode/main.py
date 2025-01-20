@@ -8,7 +8,7 @@ from kivymd.uix.recycleview import MDRecycleView
 from kivymd.uix.list import TwoLineAvatarIconListItem, IconLeftWidget, IconRightWidget
 from kivymd.uix.card import MDCard
 from kivymd.uix.fitimage import FitImage
-from kivy.uix.image import Image
+from kivy.uix.image import Image, AsyncImage
 from kivymd.uix.selectioncontrol import MDSwitch
 from kivymd.uix.button import MDRaisedButton, MDIconButton, MDFlatButton
 from kivymd.uix.dialog import MDDialog
@@ -87,7 +87,14 @@ class MyApp(MDApp):
     # app-internals
     dialog = None
     show_line = BooleanProperty(False)
-    fit_display_source = StringProperty("assets/color-picker-qr.png")
+    fit_display_source = StringProperty("src/qr/9Ranimated_qr_code_20250120122818.gif")
+    ### features | animated qr
+    web_sync_btn = ... # IconButton TODO to be added
+    file_picker_card  = ... # instance of MDCard TODO to be added
+    generate_qr_btn = ... # instance of MDIconButton TODO to be added
+    tempUrlFile = StringProperty()
+    tempUrlFile_ext = StringProperty()
+    Preview_modal_source = StringProperty("src/qr/Ranimated_qr_code_20250120122818.gif")
     #
     icon_brush_color = ListProperty([1,.4,.2, 1])
     footer_brush_color = ListProperty([1,.4,.2, 1])
@@ -130,6 +137,7 @@ class MyApp(MDApp):
             self.dialog = MDDialog(
                 title="  Quick Create",
                 type="custom",
+                width_offset=dp(30),
                 content_cls=Builder.load_file('kv/quick_create.kv'),
                 buttons=[
                     MDFlatButton(
@@ -154,13 +162,13 @@ class MyApp(MDApp):
     def on_tab_switch(self, instance_tabs, instance_tab, instance_tab_label,):
         screen = self.root.get_screen('home')
         if instance_tab.name == 'scaner_tab':
-            screen.ids.top_app_bar.title = "Scan Codes"
+            screen.ids.top_app_bar_label.text = "Scan Codes"
         elif instance_tab.name == 'home_tab':
-            screen.ids.top_app_bar.title = "Create Codes"
+            screen.ids.top_app_bar_label.text = "Create Codes"
         elif instance_tab.name == 'document_tab':
-            screen.ids.top_app_bar.title = "Scan Documents"
+            screen.ids.top_app_bar_label.text = "Scan Documents"
         else:
-            screen.ids.top_app_bar.title = "All Services"
+            screen.ids.top_app_bar_label.text = "All Services"
         print(instance_tab.name)
 
     def build(self):
@@ -223,19 +231,23 @@ class MyApp(MDApp):
         global Preview_modal
         if not Preview_modal:
             Preview_modal = ModalView(size_hint=(.7, .7), auto_dismiss=True, background='', background_color=[0, 0, 0, 0],)
-            self.image_widget = Image(source='', anim_delay=0.03,allow_stretch=True,keep_ratio=True)  # Load and play the GIF
+            self.image_widget = AsyncImage(source=self.Preview_modal_source, anim_delay=0.03,allow_stretch=True,keep_ratio=True)  # Load and play the GIF
             Preview_modal.add_widget(self.image_widget)
             Preview_modal.bind(on_open=self.preview_modal_open, on_dismiss=self.preview_modal_dismiss,on_touch_up=Preview_modal.dismiss)
         #
         # hotreload ->
         global color_picker
-        color_picker = MDColorPicker(size_hint=(0.45, 0.85))
+        color_picker = MDColorPicker(size_hint=(0.45, 0.85),type_color='RGBA')
         color_picker.set_color_to = "icon_brush_color"
         # color_picker.open()
         color_picker.bind(
             # on_select_color=get_color,
             on_release=self.get_selected_color,
         ) 
+        # #
+        self.web_sync_btn = self.root.get_screen('advanced_qr').ids.web_sync
+        self.file_picker_card = self.root.get_screen('advanced_qr').ids.file_picker_card
+        self.generate_qr_btn = self.root.get_screen('advanced_qr').ids.generate_qr_btn
     
 
     def refresh_files(self) -> list:
@@ -298,6 +310,8 @@ class MyApp(MDApp):
                 # except Exception as e: print(e)
                 if platform == 'android':
                     ShareSheet().share_file(filename)
+                elif platform != 'android':
+                    Clock.schedule_once(lambda dt :self.toast("❌ Only works on Android\nCouldn't share file"),.2)
             except Exception as e:
                 print(e)
                 Clock.schedule_once(lambda dt :self.toast("❌ Couldn't share file"),.2)
@@ -312,6 +326,7 @@ class MyApp(MDApp):
         #
         global Preview_modal
         Preview_modal.children[0].source = file
+        # self.Preview_modal_source = file
         # print('before opening',file,modal.children[0].source)
         Preview_modal.open()
 
@@ -330,6 +345,10 @@ class MyApp(MDApp):
     def generate_qr_code(self , code:str):
         #
         _modal.open()
+        if not code:
+            self.toast("QRcode data cannot be empty \nPlease enter something")
+            Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
+            return
         def _gen():
             _ = codegen.generate_qr_code(code)
             # refresh the files
@@ -345,8 +364,173 @@ class MyApp(MDApp):
         #
         Thread(target=_gen).start()
 
+    def _verify_and_fetch_from_url(self, url:str):
+        # def _validate(url:str):
+        from urllib.request import urlopen
+        import tempfile
+        def _(url):
+            # Download the image from the URL
+            # url = 'https://ci3.googleusercontent.com/meips/ADKq_Nb8AgH6eOB3xeD5UFQEwsIuzmY8x9ngEA63u62xOr82ptFtVfPSz7Nb6UmgBJ8YXbvmEhhKKevYWSFL4gj2MCjlSaV66UiZtkbCv2y4RqcDyUkWeBmxnDWygWmckGwaJ-bF5z2nDIWXpAIIZRtCzL1cty_7uK6vZKXb=s0-d-e1-ft#https://m.media-amazon.com/images/G/01/outbound/OutboundTemplates/Amazon_logo_US._BG255,255,255_.png'
+            try:
+                response = urlopen(url)
+                with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                    tmp_file.write(response.read())
+                    bg_file_path = tmp_file.name
+            except Exception as e:
+                print('The URL is not valid.')
+                Clock.schedule_once(lambda  dt :self.toast("The URL is not valid.\ntry a different file Url"),.2)
+                Clock.schedule_once(lambda x: setattr(self.web_sync_btn,"disabled" , False), 0.1)
+                Clock.schedule_once(lambda x: setattr(self.file_picker_card,"disabled" , False), 0.1)
+                Clock.schedule_once(lambda x: setattr(self.generate_qr_btn,"disabled" , False), 0.1)
+                return
+
+            # Check if the file exists
+            if os.path.isfile(bg_file_path):
+                print('yes a file', bg_file_path)
+                
+                # Determine the file type using Pillow
+                try:
+                    from PIL import Image, ImageSequence
+                    with Image.open(bg_file_path) as img:
+                        image_format = img.format.lower()
+                        if image_format in ['gif', 'png', 'jpg', 'jpeg']:
+                            print(f'The file is a valid image of type: {image_format}')
+                            if image_format == 'gif':
+                                # reprocesse the file
+                                with Image.open(bg_file_path) as gif:
+                                        frames = []
+                                        for frame in ImageSequence.Iterator(gif):
+                                            # Convert to RGBA and ensure all frames are consistent
+                                            frame = frame.convert("RGBA")
+                                            
+                                            # Normalize transparency (replace with solid color if needed)
+                                            transparent_color = (255, 255, 255, 0)  # White with full transparency
+                                            new_frame = Image.new("RGBA", gif.size, transparent_color)
+                                            new_frame.paste(frame, (0, 0), frame)
+                                            frames.append(new_frame)
+                                        
+                                        # Save the reprocessed GIF with normalized transparency
+                                        frames[0].save(
+                                            bg_file_path+".gif",
+                                            save_all=True,
+                                            append_images=frames[1:],
+                                            loop=0,
+                                            duration=gif.info.get("duration", 100),  # Retain original frame duration
+                                            disposal=2,  # Properly dispose of previous frames
+                                        )
+                            
+                                # set the image temp property
+                                self.tempUrlFile = bg_file_path+".gif"
+                            else:
+                                self.tempUrlFile = bg_file_path # self.generate_animated_qr_code adds the extention for file other than .gif
+                            
+                            # change Imge source
+                            Clock.schedule_once(lambda x: setattr(self,"fit_display_source" , self.tempUrlFile), 0.1)
+                            # change button state | web_sync | file_picker_card
+                            Clock.schedule_once(lambda x: setattr(self.web_sync_btn,"disabled" , False), 0.1)
+                            Clock.schedule_once(lambda x: setattr(self.file_picker_card,"disabled" , False), 0.1)
+                            Clock.schedule_once(lambda x: setattr(self.generate_qr_btn,"disabled" , False), 0.1)
+                        else:
+                            print('The file is not a valid image.')
+                            Clock.schedule_once(lambda  dt :self.toast("The file is not a valid image.\ntry a different file Url"),.2)
+                            Clock.schedule_once(lambda x: setattr(self.web_sync_btn,"disabled" , False), 0.1)
+                            Clock.schedule_once(lambda x: setattr(self.file_picker_card,"disabled" , False), 0.1)
+                            Clock.schedule_once(lambda x: setattr(self.generate_qr_btn,"disabled" , False), 0.1)
+                except Exception as e:
+                    print('The file is not a valid image.\n', e)
+                    Clock.schedule_once(lambda dt, e=e: self.toast(f"{e}\ntry a different file Url"), .2)
+                    # change button state | web_sync | file_picker_card
+                    Clock.schedule_once(lambda x: setattr(self.web_sync_btn,"disabled" , False), 0.1)
+                    Clock.schedule_once(lambda x: setattr(self.file_picker_card,"disabled" , False), 0.1)
+                    Clock.schedule_once(lambda x: setattr(self.generate_qr_btn,"disabled" , False), 0.1)
+            else:
+                print('no a file')
+                Clock.schedule_once(lambda dt: self.toast("file not found\nnot a valid file"), .2)
+                # change button state | web_sync | file_picker_card
+                Clock.schedule_once(lambda x: setattr(self.web_sync_btn,"disabled" , False), 0.1)
+                Clock.schedule_once(lambda x: setattr(self.file_picker_card,"disabled" , False), 0.1)
+                Clock.schedule_once(lambda x: setattr(self.generate_qr_btn,"disabled" , False), 0.1)
+        threading.Thread(target=_,args=(url,)).start()
+
+    def generate_animated_qr_code(self):
+        _modal.open()
+        # check if code is valid
+        if not self.qr_code_data:
+            self.toast("Barcode data cannot be empty \nPlease enter something")
+            Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
+            return
+        def _gen():
+            # create qr first
+            import segno
+            qrcode = segno.make(self.qr_code_data, error='h')
+            # save it
+            output = f'src/qr/animated_qr_code_{codegen.get_time()}'
+            # Determine the file type using Pillow
+            try:
+                from PIL import Image
+                with Image.open(self.tempUrlFile) as img:
+                    image_format = img.format.lower()
+                    if image_format in ['gif', 'png', 'jpg', 'jpeg']:
+                        print(f'The file is a valid image of type: {image_format}')
+                        # change Imge source
+                        if output.endswith('.gif'):
+                            save_as = output
+                        else:
+                            save_as = output + "." + image_format
+                        qrcode.to_artistic(background=self.tempUrlFile, target=save_as, scale=10)
+                        ##
+                        if save_as.endswith('.gif'):
+                            # reprocesse the file
+                            from PIL import Image, ImageSequence
+                            with Image.open(save_as) as gif:
+                                frames = []
+                                for frame in ImageSequence.Iterator(gif):
+                                    # Convert to RGBA and ensure all frames are consistent
+                                    frame = frame.convert("RGBA")
+                                    
+                                    # Normalize transparency (replace with solid color if needed)
+                                    transparent_color = (255, 255, 255, 0)  # White with full transparency
+                                    new_frame = Image.new("RGBA", gif.size, transparent_color)
+                                    new_frame.paste(frame, (0, 0), frame)
+                                    frames.append(new_frame)
+                                
+                                # Save the reprocessed GIF with normalized transparency
+                                frames[0].save(
+                                    save_as,
+                                    save_all=True,
+                                    append_images=frames[1:],
+                                    loop=0,
+                                    duration=gif.info.get("duration", 100),  # Retain original frame duration
+                                    disposal=2,  # Properly dispose of previous frames
+                                )
+                        Clock.schedule_once(lambda  dt :self.toast("QR code generated Sucessfuly"),.2)
+                        Clock.schedule_once(lambda x: setattr(self,"fit_display_source" , save_as), 0.1)
+                        Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
+                        # refresh the files
+                        self.root.get_screen('home').ids.rv.data.insert(
+                            0,
+                            {
+                            'image_source': save_as,
+                            }
+                        )
+                        # save_as = None
+
+                    else:
+                        print('The file is not a valid image\ncancelling qr generation.')
+            except (IOError, SyntaxError) as e:
+                print('The file is not a valid image.\n' "error" , e)
+                Clock.schedule_once(self.toast("Something went wrong ! ❌"),.2)
+                Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
+        Thread(target=_gen).start()
+        print(self.tempUrlFile,os.path.isfile(self.tempUrlFile))
+
     def generate_barcode(self,code:str):
         _modal.open()
+        # check if code is valid
+        if not code:
+            self.toast("Barcode data cannot be empty \nPlease enter something")
+            Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
+            return
         def _gen():
             # check if code is valid
             if len(code) ==12 and code.isdigit():

@@ -159,6 +159,8 @@
                             on_active: 
                                 # app.qr_code_micro = Micro_switch.active
                                 print(Micro_switch.active)
+                                Micro_switch.active = True if Awesome_switch.active else False
+                                Micro_switch.disabled = True if Awesome_switch.active else False
 
                             
                         # MDLabel:
@@ -195,7 +197,9 @@
                             icon: "web-sync"
                             disabled: True if not Awesome_switch.active else False
                             on_release: 
-                                file_picker_card.disabled = True if not file_picker_card.disabled else False
+                                file_picker_card.disabled =  True
+                                self.disabled = True
+                                generate_qr_btn.disabled = True
                                 app._verify_and_fetch_from_url(url_field.text)
                             # canvas.after:
                         
@@ -394,13 +398,13 @@
             x: text_input_card.width - self.width * 1.2
             y: text_input_card.top
             md_bg_color: rgba(11, 41, 113)  #0, .3, 1, .4  
-            disabled: True
+            disabled: False
             on_release: 
                 app.qr_code_data = qr_data_field.text
                 app.qr_code_icon = icon_field.text
                 app.qr_code_description = footer_field.text
                 app.qr_code_micro = Micro_switch.active
-                app.generate_qr_code_icon()
+                app.generate_qr_code_icon() if not Awesome_switch.active else app.generate_animated_qr_code()
             canvas.before:
                 Color:
                     rgba: 18/255, 18/255, 18/255,1 #app.theme_cls.bg_dark

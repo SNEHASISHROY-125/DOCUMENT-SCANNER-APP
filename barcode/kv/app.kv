@@ -1,23 +1,58 @@
 #kv/app.kv
 #:include kv/main.kv
+#: import FrostedGlass kivy_garden.frostedglass
+# : import ZBarCam kivy_garden.zbarcam.ZBarCam
 
+# :import Factory kivy.factory.Factory
 ScreenManager:
     HomeScreen:
     SettingsScreen:
     AdvancedQRScreen:
-
 <HomeScreen>:
     name: 'home'
     
     BoxLayout:
         orientation: 'vertical'
-        MDTopAppBar:
-            id: top_app_bar
-            title: "Create Barcode, QR Code, and Scan Documents"
-            pos_hint: {"top": 1}
-            # right_action_items: [["dots-vertical", lambda x: app.refresh_files()]]
-            md_bg_color: 1, 1, 1, 0.2  # Set the transparency by adjusting the alpha value (last value)
+        # MDTopAppBar:
+        #     id: top_app_bar
+        #     title: "Create Barcode, QR Code, and Scan Documents"
+        #     pos_hint: {"top": 1}
+        #     # right_action_items: [["dots-vertical", lambda x: app.refresh_files()]]
+        #     md_bg_color: 1, 1, 1, 0.2  # Set the transparency by adjusting the alpha value (last value)
 
+        # MDFloatLayout:
+        FrostedGlass:
+            background: rv
+            size_hint_y: None
+            height: dp(60)
+            blur_size: 45
+            saturation: 1.5
+            luminosity: 1.5
+            overlay_color:  "#0000FF88"
+            noise_opacity: 0.0
+            # border_radius:  dp(200), dp(200), dp(200), dp(200)
+            outline_color: "#000080"
+            outline_width: 1
+            MDBoxLayout:
+                id : top_app_bar
+                orientation: 'horizontal'
+                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                Label:
+                    id : top_app_bar_label
+                    text: 'QR Genie'
+                    halign: 'center'
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                    bold: True
+                    color: 'blue'
+                    font_size: dp(25)
+                MDIconButton:
+                    id : top_app_bar_btn_left
+                    icon: 'plus'
+                    pos_hint: {'center_x': 0.7, 'center_y': 0.5}
+                    # size_hint_x: .3
+                    # size: dp(50), dp(50)
+                    # on_release: app.generate_codes()
+            
         MDBottomNavigation:
             id: bottom_nav
             on_switch_tabs: app.on_tab_switch(*args)
@@ -35,36 +70,38 @@ ScreenManager:
                 MDFloatingActionButton:
                     icon: "plus"
                     md_bg_color: app.theme_cls.primary_color
-                    pos_hint: {'center_x': 0.7, 'center_y': 0.1}
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.1}
+                    # size_hint: None, None
+                    # size: dp(150), dp(150)
                     on_release: app.generate_codes()
         
-            MDBottomNavigationItem:
-                name: 'document_tab'
-                text: "Document"
-                icon: "camera-iris"
-                badge_icon: ""
-                icon_color: app.theme_cls.primary_color
-                Screen:
-                    name: 'doc_scaner'
-                    BoxLayout:
-                        padding: dp(10)
-                        pos_hint: {'center_x': 0.5, 'center_y': 0.7}
-                        size_hint: None, None
-                        size: dp(300), dp(300)
-                        Image:
-                            s: 'https://www.freepik.com/icon/scanning_10256279#fromView=search&page=1&position=66&uuid=47a39f87-3dcb-4a50-9011-548e22eee8c1'
-                            source: 'assets/scanning.png'
-                            allow_stretch: True
-                            keep_ratio: True
+            # MDBottomNavigationItem:
+            #     name: 'document_tab'
+            #     text: "Document"
+            #     icon: "camera-iris"
+            #     badge_icon: ""
+            #     icon_color: app.theme_cls.primary_color
+            #     Screen:
+            #         name: 'doc_scaner'
+            #         BoxLayout:
+            #             padding: dp(10)
+            #             pos_hint: {'center_x': 0.5, 'center_y': 0.7}
+            #             size_hint: None, None
+            #             size: dp(300), dp(300)
+            #             Image:
+            #                 s: 'https://www.freepik.com/icon/scanning_10256279#fromView=search&page=1&position=66&uuid=47a39f87-3dcb-4a50-9011-548e22eee8c1'
+            #                 source: 'assets/scanning.png'
+            #                 allow_stretch: True
+            #                 keep_ratio: True
 
-                    MDLabel:
-                        text: 'Comming Soon'
-                        pos_hint: {'center_x': 0.5, 'center_y': 0.2}
-                        font_size: '30sp'
-                        halign: 'center'
-                        bold: True
-                        theme_text_color: "Custom"
-                        text_color: app.theme_cls.primary_color
+            #         MDLabel:
+            #             text: 'Comming Soon'
+            #             pos_hint: {'center_x': 0.5, 'center_y': 0.2}
+            #             font_size: '30sp'
+            #             halign: 'center'
+            #             bold: True
+            #             theme_text_color: "Custom"
+            #             text_color: app.theme_cls.primary_color
                     
         
             MDBottomNavigationItem:

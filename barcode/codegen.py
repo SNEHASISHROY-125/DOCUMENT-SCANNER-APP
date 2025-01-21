@@ -177,7 +177,8 @@ def generate_qr_code(data, description='',output='') -> str:
 #     generate_qr_code(qr_data, f'src/qr/qr_code_{datetime.now().strftime("%Y%m%d%H%M%S")}.png')
 
 
-import segno
+import segno , os ,shutil , tempfile
+from urllib.request import urlopen
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 
@@ -243,7 +244,7 @@ def generate_custom_qr(data, description='', output='', scale=10, light=(255, 25
 
 
 from kivymd.icon_definitions import md_icons
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw , ImageSequence
 
 def generate_custom_qr_icon(data, description='', output='', scale=10, light=(255, 255, 255), dark=(0, 0, 0), border=1, icon_name=None , info_text_color=(36, 56, 237,) , info_text_back_color="WHITE",icon_color=(238, 252, 40,),micro:bool=False) -> str:
     '''
@@ -325,6 +326,162 @@ def generate_custom_qr_icon(data, description='', output='', scale=10, light=(25
     except Exception as e:
         print(data,description,output,scale,light,dark,border,icon_name,info_text_color,info_text_back_color,icon_color)
         print(f"An error occurred while generating QR Code: {e}")
+
+def generate_animated_qr_code(data:str,file_:str) -> str:
+    '''
+    file_:str -> path to the raw image file
+    data:str -> data to be encoded in the qr code
+    '''
+    qrcode = segno.make(data, error='h')
+    # self.status = "10"
+    if os.path.isfile(file_):
+        print('yes a file', file_)
+        # determine the file type
+        try:
+            with Image.open(file_) as img:
+                    image_format = img.format.lower()
+                    if not file_.endswith(".gif"): output = file_ + '.' + image_format
+                    else : output = file_
+        except Exception as e: 
+            print('The file is not a valid image.', e)
+            return
+        qrcode.to_artistic(background=file_, target=output, scale=10)
+        # self.status = "50"
+    else: 
+        print('no a file')
+        return
+    try:
+        if  image_format == 'gif':
+            with Image.open(output) as gif:
+                frames = []
+                
+                # Process each frame
+                for frame in ImageSequence.Iterator(gif):
+                    # Ensure the frame is in the same mode as the original GIF
+                    processed_frame = frame.copy()
+                    
+                    # Optional: If transparency needs normalization
+                    if processed_frame.mode == "P":
+                        palette = processed_frame.getpalette()
+                        transparency_index = processed_frame.info.get('transparency', None)
+                        
+                        if transparency_index is not None:
+                            # Replace transparency index with a solid color if needed
+                            processed_frame = processed_frame.convert("RGBA")
+                            transparent_color = (255, 255, 255, 0)  # White with full transparency
+                            new_frame = Image.new("RGBA", gif.size, transparent_color)
+                            new_frame.paste(processed_frame, (0, 0), processed_frame)
+                            processed_frame = new_frame.convert("P", palette=Image.ADAPTIVE)
+                            processed_frame.putpalette(palette)
+                    
+                    frames.append(processed_frame)
+                save_as = output
+                # Save the processed GIF with consistent palette
+                frames[0].save(
+                    save_as,
+                    save_all=True,
+                    append_images=frames[1:],
+                    loop=0,
+                    duration=gif.info.get("duration", 100),
+                    disposal=2  # Proper disposal method
+                )
+                # self.status = "100"
+                # 
+        else: save_as = output
+        # copyfile(save_as, output)
+        qr_lives_at = f'src/qr/animated_qr_code_{get_time()}' + '.' + image_format
+        shutil.copyfile(save_as, qr_lives_at)
+        return qr_lives_at
+    except Exception as e:
+        print('The file is not a valid image.\n' "error", e)
+        return
+
+def _verify_and_fetch_from_url(url:str) -> list[str,str]:
+    '''
+    [``bg_file_path:str``, ``raw_file_path:str``]
+    '''
+    # Download the image from the URL
+    # url = 'https://ci3.googleusercontent.com/meips/ADKq_Nb8AgH6eOB3xeD5UFQEwsIuzmY8x9ngEA63u62xOr82ptFtVfPSz7Nb6UmgBJ8YXbvmEhhKKevYWSFL4gj2MCjlSaV66UiZtkbCv2y4RqcDyUkWeBmxnDWygWmckGwaJ-bF5z2nDIWXpAIIZRtCzL1cty_7uK6vZKXb=s0-d-e1-ft#https://m.media-amazon.com/images/G/01/outbound/OutboundTemplates/Amazon_logo_US._BG255,255,255_.png'
+    try:
+        # url = inpt.children[-1].text
+        response = urlopen(url)
+        response_content = response.read()
+    except Exception as e: 
+        print(url,'Error:', e)
+        return
+    # create temp AImage source
+    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+        tmp_file.write(response_content)
+        bg_file_path = tmp_file.name
+        tmp_file.close()
+    # create temp rawImage source
+    with tempfile.NamedTemporaryFile(delete=False) as raw_tmp_file:
+        raw_tmp_file.write(response_content)
+        raw_tmp_file.close()
+    # release resources
+        response_content = None
+        
+        name = raw_tmp_file.name
+
+    # Check if the file exists
+    if os.path.isfile(bg_file_path):
+        print('yes a file', bg_file_path)
+        
+        # Determine the file type using Pillow
+        try:
+            with Image.open(bg_file_path) as img:
+                image_format = img.format.lower()
+                if image_format in ['gif', 'png', 'jpg', 'jpeg']:
+                    print(f'The file is a valid image of type: {image_format}')
+                    if image_format == 'gif':
+                        # Open and process the GIF
+                        with Image.open(bg_file_path) as gif:
+                            frames = []
+                
+                            # Process each frame
+                            for frame in ImageSequence.Iterator(gif):
+                                # Ensure the frame is in the same mode as the original GIF
+                                processed_frame = frame.copy()
+                                
+                                # Optional: If transparency needs normalization
+                                if processed_frame.mode == "P":
+                                    palette = processed_frame.getpalette()
+                                    transparency_index = processed_frame.info.get('transparency', None)
+                                    
+                                    if transparency_index is not None:
+                                        # Replace transparency index with a solid color if needed
+                                        processed_frame = processed_frame.convert("RGBA")
+                                        transparent_color = (255, 255, 255, 0)  # White with full transparency
+                                        new_frame = Image.new("RGBA", gif.size, transparent_color)
+                                        new_frame.paste(processed_frame, (0, 0), processed_frame)
+                                        processed_frame = new_frame.convert("P", palette=Image.ADAPTIVE)
+                                        processed_frame.putpalette(palette)
+                                
+                                frames.append(processed_frame)
+                            # Save the reprocessed GIF with normalized transparency
+                            frames[0].save(
+                                bg_file_path+".gif",
+                                save_all=True,
+                                append_images=frames[1:],
+                                loop=0,
+                                duration=gif.info.get("duration", 100),  # Retain original frame duration
+                                disposal=2,  # Properly dispose of previous frames
+                            )
+                            source = bg_file_path+".gif"
+                    else: source = bg_file_path
+                    # change Imge source
+                    # self.AImage.source = source
+                    # print('raw file:', self.rawImage)
+                    return [source, name]
+                else:
+                    print('The file is not a valid image.')
+                    # set default source
+                    # self.AImage.source = ""
+        except Exception as e:
+            print('Error processing the image:', e)
+            return []
+    else:
+        print('no a file')
 
 # Example usage
 # generate_custom_qr("https://example.com", "Example QR Code", output='segno_custom_qr_code.png', scale=10, border=1, dark=(217, 37, 217,), icon_name='cog')

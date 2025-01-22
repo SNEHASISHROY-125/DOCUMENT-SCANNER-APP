@@ -29,7 +29,7 @@ source.include_exts = py,png,jpg,kv,atlas,ttf,json
 #source.exclude_patterns = license,images/*/*.jpg
 
 # (str) Application versioning (method 1)
-version = 0.4
+version = 0.5
 
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]
@@ -37,7 +37,7 @@ version = 0.4
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,certifi==2024.8.30,charset-normalizer==3.4.0,docutils==0.21.2,idna==3.10,Kivy==2.3.0,Kivy-Garden==0.1.5,kivymd==1.2.0,pillow==11.0.0,Pygments==2.18.0,python-barcode==0.15.1,qrcode==8.0,requests==2.32.3,segno==1.6.1,urllib3==2.2.3,pyjnius
+requirements = python3,certifi==2024.8.30,charset-normalizer==3.4.0,docutils==0.21.2,idna==3.10,Kivy==2.3.0,Kivy-Garden==0.1.5,kivymd==1.2.0,pillow==11.0.0,Pygments==2.18.0,python-barcode==0.15.1,qrcode==8.0,requests==2.32.3,segno==1.6.1,urllib3==2.2.3,pyjnius,qrcode-artistic==3.0.2,kivy-garden.frostedglass==0.5.0,openssl
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -96,7 +96,7 @@ android.presplash_lottie = %(source.dir)s/assets/anim.json
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions/#build-options-1 for all the supported syntaxes and properties)
 #android.permissions = android.permission.INTERNET, (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)
-android.permissions = CAMERA, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE
+android.permissions = CAMERA, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE,INTERNET, ACCESS_NETWORK_STATE
 android.windowSoftInputMode = adjustResize
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host

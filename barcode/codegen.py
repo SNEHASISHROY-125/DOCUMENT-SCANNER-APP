@@ -179,6 +179,7 @@ def generate_qr_code(data, description='',output='') -> str:
 
 import segno , os ,shutil , tempfile
 from urllib.request import urlopen
+import certifi
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 
@@ -404,7 +405,7 @@ def _verify_and_fetch_from_url(url:str) -> list[str,str]:
     # url = 'https://ci3.googleusercontent.com/meips/ADKq_Nb8AgH6eOB3xeD5UFQEwsIuzmY8x9ngEA63u62xOr82ptFtVfPSz7Nb6UmgBJ8YXbvmEhhKKevYWSFL4gj2MCjlSaV66UiZtkbCv2y4RqcDyUkWeBmxnDWygWmckGwaJ-bF5z2nDIWXpAIIZRtCzL1cty_7uK6vZKXb=s0-d-e1-ft#https://m.media-amazon.com/images/G/01/outbound/OutboundTemplates/Amazon_logo_US._BG255,255,255_.png'
     try:
         # url = inpt.children[-1].text
-        response = urlopen(url)
+        response = urlopen(url, cafile=certifi.where())
         response_content = response.read()
     except Exception as e: 
         print(url,'Error:', e)

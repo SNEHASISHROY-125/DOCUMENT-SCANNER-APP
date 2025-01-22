@@ -1,4 +1,4 @@
-import os
+import os , shutil
 from threading import Thread
 from kivy.lang import Builder
 from kivy.clock import Clock , mainthread
@@ -20,7 +20,7 @@ from kivy.properties import StringProperty
 from kivy.properties import BooleanProperty, StringProperty , ListProperty
 from kivymd.uix.pickers import MDColorPicker
 from typing import Union
-import threading
+import threading 
 from datetime import datetime
 #
 from kivy.animation import Animation
@@ -460,7 +460,9 @@ class MyApp(MDApp):
             if platform == 'android':
                     from android.permissions import request_permissions, Permission , check_permission
                     if not check_permission(Permission.READ_EXTERNAL_STORAGE) or not check_permission(Permission.WRITE_EXTERNAL_STORAGE):
+                        Clock.schedule_once(lambda dt: self.toast("Please Grant Pemitions\nto pick a file from Internal\nstorage"),0.3)
                         request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
+                        return
             if platform == 'android':
                 if not hasattr(self, 'chooser'):
                     self.chooser = Chooser(self._chooser_callback)
@@ -477,16 +479,27 @@ class MyApp(MDApp):
     # ShareSheet().share_file_list(uri_list, self.target)
         def _call(uri_list):
             try:
+                Clock.schedule_once(lambda dt : _modal.open() ,.1)
                 # print(uri_list,'type:',type(uri_list[0]))
                 #self._source = uri_list[0]
                 _file = SharedStorage().copy_from_shared(uri_list[0])
                 # set the tempUrlFile
-                self.tempUrlFile = _file
-                self.fit_display_source = _file
-                del self.chooser
+                # self.tempUrlFile = _file
+                Clock.schedule_once(lambda x: setattr(self,"tempUrlFile" , _file), 0.1)
+                # make a copy for fit_display_source at "src/_cache"
+                try:
+                    tmp_fit = shutil.copy(_file, os.path.join('src', '_cache', os.path.basename(_file)))
+                    Clock.schedule_once(lambda x: setattr(self,"fit_display_source" , tmp_fit), 0.2)
+                except Exception as e:
+                    print(e,"\nCould not copy file to cache")
+                    Clock.schedule_once(lambda x: setattr(self,"fit_display_source" , _file), 0.2)
+                # self.fit_display_source = _file
+                # del self.chooser
+                Clock.schedule_once(lambda dt: setattr(self, 'chooser', None), 0.3)
 
                 base = os.path.basename(_file)
-                Clock.schedule_once(lambda dt: self.toast(f"{base}"),.5)
+                Clock.schedule_once(lambda dt: self.toast(f"{base}"),0.5)
+                Clock.schedule_once(lambda dt : _modal.dismiss() ,0.2)
                 #
                 # with open('freehost', 'r') as f:
                 #     api_key = f.read()
@@ -506,7 +519,8 @@ class MyApp(MDApp):
                 #         f.close()
                 #         return None
             except Exception as e:
-                print(e)
+                print(e,"\nSomething went wrong ,while _chooser_callback")
+                Clock.schedule_once(lambda dt : _modal.dismiss() ,0.2)
         threading.Thread(target=_call,args=(uri_list,)).start()
 
     # hotreload ->
@@ -580,6 +594,7 @@ class MyApp(MDApp):
             )
             print("QR Code Generated",'micro',self.qr_code_micro)
             # self.fit_display_source = "qr_code.png"
+            Clock.schedule_once(self.toast("QRcode generated Sucessfuly"),.2)
              # refresh the files
             self.root.get_screen('home').ids.rv.data.insert(
                 0,

@@ -360,6 +360,7 @@ class MyApp(MDApp):
             )
             _ = None
             Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
+            Clock.schedule_once(lambda  dt :self.toast("QR code generated Sucessfuly"),.2)
             print('qr',code)
         #
         Thread(target=_gen).start()
@@ -450,8 +451,63 @@ class MyApp(MDApp):
             )
             _ = None
             Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
+            Clock.schedule_once(self.toast("Barcode generated Sucessfuly"),.2)
         #
         Thread(target=_gen).start()
+
+    def Pick_A_File(self):
+        try:
+            if platform == 'android':
+                    from android.permissions import request_permissions, Permission , check_permission
+                    if not check_permission(Permission.READ_EXTERNAL_STORAGE) or not check_permission(Permission.WRITE_EXTERNAL_STORAGE):
+                        request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
+            if platform == 'android':
+                if not hasattr(self, 'chooser'):
+                    self.chooser = Chooser(self._chooser_callback)
+                # let the user choose a file
+                self.chooser.choose_content('image/*') 
+
+            else: print('Not supported on this platform')
+                # self._chooser_callback([])
+        except Exception as e:
+            print(e)
+            return
+    # callback is called when the user selects a file
+    def _chooser_callback(self,uri_list):
+    # ShareSheet().share_file_list(uri_list, self.target)
+        def _call(uri_list):
+            try:
+                # print(uri_list,'type:',type(uri_list[0]))
+                #self._source = uri_list[0]
+                _file = SharedStorage().copy_from_shared(uri_list[0])
+                # set the tempUrlFile
+                self.tempUrlFile = _file
+                self.fit_display_source = _file
+                del self.chooser
+
+                base = os.path.basename(_file)
+                Clock.schedule_once(lambda dt: self.toast(f"{base}"),.5)
+                #
+                # with open('freehost', 'r') as f:
+                #     api_key = f.read()
+                #     f.close()
+                # url = 'https://freeimage.host/api/1/upload'
+                # with open(_file, 'rb') as f:
+                #     response = requests.post(url, data={'key': api_key}, files={'source': f})
+                #     if response.status_code == 200:
+                #             data = response.json()
+                #             if 'link' in data:
+                #                 f.close()
+                #                 print(data['link'])
+                #                 return data['link']
+                #             else: return 
+                #     else:
+                #         print(f"Failed to upload file: {response.status_code}")
+                #         f.close()
+                #         return None
+            except Exception as e:
+                print(e)
+        threading.Thread(target=_call,args=(uri_list,)).start()
 
     # hotreload ->
     def open_color_picker(self,set_color_to):

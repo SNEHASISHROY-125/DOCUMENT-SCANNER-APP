@@ -219,7 +219,7 @@
                             bold: True
                             theme_text_color: "Custom"
                             text_color: app.theme_cls.primary_color
-                            size_hint_x: 0.8
+                            size_hint_x: 0.8 
                             halign: "center"
                         MDCard:
                             id: file_picker_card
@@ -229,7 +229,7 @@
                             radius: [0, 0, 0, 10]
                             md_bg_color: 0, 1, .4, 0
                             disabled: True if not Awesome_switch.active else False
-                            on_release: print("Card clicked")
+                            on_release: app.Pick_A_File()
                             AsyncImage:
                                 source: "assets/upload.png"
 

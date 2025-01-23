@@ -17,12 +17,16 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.textfield import MDTextField
 from kivy.properties import StringProperty
 # hotreload ->
+from kivy.core.window import Window
 from kivy.properties import BooleanProperty, StringProperty , ListProperty
 from kivymd.uix.pickers import MDColorPicker
 from typing import Union
 import threading 
 from datetime import datetime
 #
+# ADs
+from kivmoblite import Admob
+
 from kivy.animation import Animation
 from kivy.uix.modalview import ModalView
 from kivy.uix.behaviors import ButtonBehavior
@@ -32,6 +36,7 @@ from kivymd.toast import toast as tst
 from kivymd.utils.set_bars_colors import set_bars_colors
 from kivy.config import Config
 Config.set('kivy', 'pause_on_minimize', '1')
+Window.softinput_mode = "below_target"
 
 import codegen
 
@@ -45,8 +50,16 @@ if not os.path.exists('./src'):
     os.makedirs('./src/qr')
     os.makedirs('./src/pdf')
     os.makedirs('./src/_cache')    # _cache | temp files to be deleted on_pre_leave
+# create ./tmp_cache folder
+if not os.path.exists('./tmp_cache'):
+    os.makedirs('./tmp_cache')    # tmp_cache | temp files to be deleted on_pre_leave
 
-
+ad_ids = {
+        "appId": "ca-app-pub-2987282397801743~7612741649",
+        "banId": "ca-app-pub-2987282397801743/6842585450",
+        "intId": "ca-app-pub-3940256099942544/1033173712",
+        "testD": []
+        }
 
 class HomeScreen(Screen):
     pass
@@ -170,8 +183,25 @@ class MyApp(MDApp):
         else:
             screen.ids.top_app_bar_label.text = "All Services"
         print(instance_tab.name)
+    
+    def _show_baner(self):
+        if platform == 'android':
+            self.ads.banner_pos("top")
+            self.ads.show_banner()
+        else:
+            print('Not supported on this platform')
+    def _hide_baner(self):
+        if platform == 'android':
+            self.ads.hide_banner()
+        else:
+            print('Not supported on this platform')
 
     def build(self):
+        # ADs
+        if platform == 'android':
+            self.ads = Admob(ad_ids)
+            self.ads.new_banner(position = "bottom", color = "#ffffff", margin = 0) # Adaptive banner
+            self.ads.request_banner()
         #
         self.theme_cls.theme_style = 'Dark' 
         self.set_bars_colors()
@@ -226,7 +256,8 @@ class MyApp(MDApp):
         from kivymd.uix.spinner import MDSpinner
         global _modal
         _modal  =   ModalView(size_hint=(.8, .8), auto_dismiss=False, background='', background_color=[0, 0, 0, 0])
-        _modal.add_widget(MDSpinner(line_width=dp(5.25), size_hint=(None, None), size=(120, 120), pos_hint={'center_x': .5, 'center_y': .5}, active=True))  # Load and play the GIF
+        _modal.add_widget(MDSpinner(line_width=dp(5.25), size_hint=(None, None), size=(Window.width * 0.6, Window.width * 0.6), pos_hint={'center_x': .5, 'center_y': .5}, active=True))  # Load and play the GIF
+        _modal.add_widget(MDLabel(text="Please Wait", halign='center', pos_hint={'center_x': .5, 'center_y': .4}))
         #
         global Preview_modal
         if not Preview_modal:
@@ -270,10 +301,28 @@ class MyApp(MDApp):
             except Exception as e:
                 print(e)
                 self.toast("❌ Couldn't delete file")
+            Clock.schedule_once(lambda dt: self.del_dialog.dismiss(), 0.1)
             Clock.schedule_once(lambda dt :self.toast("🗑️ File deleted"), 0.2)
-            Clock.schedule_once(lambda dt : self.refresh_files() ,0.2)
-        #
-        Thread(target=_del).start()
+            Clock.schedule_once(lambda dt : self.refresh_files() ,0.3)
+        
+        self.del_dialog = MDDialog(
+                title="Do You Want to Delete this File?",
+                type="custom",
+                width_offset=dp(30),
+                content_cls=Builder.load_file('kv/delete.kv'),
+                buttons=[
+                    MDFlatButton(
+                        text="DELETE",
+                        on_release=lambda x: Thread(target=_del).start()
+                    ),
+                    MDFlatButton(
+                        text="CANCEL",
+                        on_release=lambda x: self.del_dialog.dismiss()
+                    ),
+                ],
+            )
+        self.del_dialog.open()
+        # Thread(target=_del).start()
 
     def share_file(self, file:str):
         if not os.path.exists(file):
@@ -387,7 +436,7 @@ class MyApp(MDApp):
                     Clock.schedule_once(lambda x: setattr(self.file_picker_card,"disabled" , False), 0.1)
                     Clock.schedule_once(lambda x: setattr(self.generate_qr_btn,"disabled" , False), 0.1)
             except Exception as e: 
-                Clock.schedule_once(self.toast("Something went wrong ! ❌"),.2)
+                Clock.schedule_once(lambda dt: self.toast("Something went wrong ! ❌"),.2)
 
             
         threading.Thread(target=_,args=(url,)).start()
@@ -421,7 +470,7 @@ class MyApp(MDApp):
                     print('Could not generate QR\ngot not qr file from callback see logs.')
             except Exception as e:
                 print('The file is not a valid image.\n' "error" , e)
-                Clock.schedule_once(self.toast("Something went wrong ! ❌"),.2)
+                Clock.schedule_once(lambda dt: self.toast("Something went wrong ! ❌"),.2)
                 Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
         Thread(target=_gen).start()
         print(self.tempUrlFile,os.path.isfile(self.tempUrlFile))
@@ -451,7 +500,7 @@ class MyApp(MDApp):
             )
             _ = None
             Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
-            Clock.schedule_once(self.toast("Barcode generated Sucessfuly"),.2)
+            Clock.schedule_once(lambda dt: self.toast("Barcode generated Sucessfuly"),.2)
         #
         Thread(target=_gen).start()
 
@@ -466,6 +515,7 @@ class MyApp(MDApp):
             if platform == 'android':
                 if not hasattr(self, 'chooser'):
                     self.chooser = Chooser(self._chooser_callback)
+                else: print('Chooser already exists')
                 # let the user choose a file
                 self.chooser.choose_content('image/*') 
 
@@ -488,14 +538,15 @@ class MyApp(MDApp):
                 Clock.schedule_once(lambda x: setattr(self,"tempUrlFile" , _file), 0.1)
                 # make a copy for fit_display_source at "src/_cache"
                 try:
-                    tmp_fit = shutil.copy(_file, os.path.join('src', '_cache', os.path.basename(_file)))
+                    tmp_fit = shutil.copy(_file, os.path.join('tmp_cache', os.path.basename(_file)))
                     Clock.schedule_once(lambda x: setattr(self,"fit_display_source" , tmp_fit), 0.2)
                 except Exception as e:
                     print(e,"\nCould not copy file to cache")
                     Clock.schedule_once(lambda x: setattr(self,"fit_display_source" , _file), 0.2)
                 # self.fit_display_source = _file
                 # del self.chooser
-                Clock.schedule_once(lambda dt: setattr(self, 'chooser', None), 0.3)
+                def _d(): del self.chooser
+                Clock.schedule_once(lambda dt: _d, 0.3)#setattr(self, 'chooser', None), 0.3)
 
                 base = os.path.basename(_file)
                 Clock.schedule_once(lambda dt: self.toast(f"{base}"),0.5)
@@ -592,9 +643,14 @@ class MyApp(MDApp):
                 icon_color=self.get_rgb(self.icon_brush_color),
                 micro=self.qr_code_micro
             )
+            if not _:
+                Clock.schedule_once(lambda dt: self.toast("❌ Couldn't generate QR code"),0.2)
+                Clock.schedule_once(lambda dt: _modal.dismiss(),0.2)
+                return
             print("QR Code Generated",'micro',self.qr_code_micro)
             # self.fit_display_source = "qr_code.png"
-            Clock.schedule_once(self.toast("QRcode generated Sucessfuly"),.2)
+            Clock.schedule_once(lambda dt : _modal.dismiss() ,0.1)
+            Clock.schedule_once(lambda dt: self.toast("QRcode generated Sucessfuly"),0.2)
              # refresh the files
             self.root.get_screen('home').ids.rv.data.insert(
                 0,
@@ -603,7 +659,6 @@ class MyApp(MDApp):
                 }
             )
             _ = None
-            Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
         # Clock.schedule_once(lambda x: threading.Thread(target=_gen).start(), 0.1)
         threading.Thread(target=_gen).start()
 

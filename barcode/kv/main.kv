@@ -7,9 +7,13 @@
     name: 'advanced_qr'
 
     MDIconButton:
-        icon: "arrow-left"
+        icon: "chevron-left"
         pos_hint: {"center_x": 0.1, "center_y": 0.87}
-        on_release: app.root.current = 'home'
+        on_release: 
+            app.root.transition.direction = 'right'
+            app.root.current = 'home'
+            # hide ads
+            app._hide_baner()
         # md_bg_color: 1, 1, 0, 1
     AsyncImage:
         id : fit
@@ -124,13 +128,13 @@
                             text: ""
                             hint_text: "QR code data"
                             helper_text: "Enter QR code Data"
-                            helper_text_mode: "on_focus"
+                            helper_text_mode: "persistent"
                             size_hint_x: 0.97
                             pos_hint: {"center_x": 0.5, "center_y": 0.5}
                             mode: "round"
                             icon_right: "qrcode"
                             max_text_length: 150
-                            required: False
+                            # required: False
 
                     MDBoxLayout:
                         orientation: 'horizontal'
@@ -184,14 +188,14 @@
                             text: ""
                             hint_text: "Enter hosted file URL"
                             helper_text: "should be direct link to file"
-                            helper_text_mode: "on_focus"
+                            helper_text_mode: "persistent"
                             # size_hint_x: 0.7
                             pos_hint: {"center_x": 0.5, "center_y": 0.5}
                             mode: "round"
                             icon_right: "file"
                             disabled: True if not  Awesome_switch.active else False
                             max_text_length: 150
-                            required: False
+                            # required: False
                         MDIconButton:
                             id: web_sync
                             icon: "web-sync"

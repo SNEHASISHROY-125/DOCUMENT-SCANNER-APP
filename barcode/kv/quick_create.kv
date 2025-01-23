@@ -38,9 +38,12 @@ MDBoxLayout:
 			icon: "chevron-triple-right"
 
 			on_release:
+				app.root.transition.direction = 'left'
 				app.root.current = 'advanced_qr'
 				app.dialog.dismiss()
 				app.theme_cls.primary_palette = "Blue" if app.root.current=='advanced_qr' else "Teal"
+				# show ads
+				app._show_baner()
 				# app.on_switch_active(self, self.active)
 
 			

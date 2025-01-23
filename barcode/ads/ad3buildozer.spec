@@ -1,19 +1,19 @@
 [app]
 
 # (str) Title of your application
-title = QRGenie Create beautiful QR and Barcodes
+title = My Application
 
 # (str) Package name
-package.name = QRGenie
+package.name = admob
 
 # (str) Package domain (needed for android/ios packaging)
-package.domain = io.github.snehasishroy_125.qrgenie
+package.domain = org.barcode
 
 # (str) Source code where the main.py live
-source.dir = ./DOCUMENT-SCANNER-APP/barcode
+source.dir = .
 
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py,png,jpg,kv,atlas,ttf,json,gif
+source.include_exts = py,png,jpg,kv,atlas
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png
@@ -29,7 +29,7 @@ source.include_exts = py,png,jpg,kv,atlas,ttf,json,gif
 #source.exclude_patterns = license,images/*/*.jpg
 
 # (str) Application versioning (method 1)
-version = 0.8
+version = 0.1
 
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]
@@ -37,17 +37,17 @@ version = 0.8
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,certifi==2024.8.30,charset-normalizer==3.4.0,docutils==0.21.2,idna==3.10,Kivy==2.3.0,Kivy-Garden==0.1.5,kivymd==1.2.0,pillow==11.0.0,Pygments==2.18.0,python-barcode==0.15.1,qrcode==8.0,requests==2.32.3,segno==1.6.1,urllib3==2.2.3,pyjnius,qrcode-artistic==3.0.2,kivy-garden.frostedglass==0.5.0,openssl,certifi,kvdroid
+requirements = python3,kivy,kivymd,requests,webview-android,kivmob,kvdroid
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
 # requirements.source.kivy = ../../kivy
 
 # (str) Presplash of the application
-# presplash.filename = %(source.dir)s/data/presplash.png
+#presplash.filename = %(source.dir)s/data/presplash.png
 
 # (str) Icon of the application
-icon.filename = %(source.dir)s/assets/icon.png
+#icon.filename = %(source.dir)s/data/icon.png
 
 # (list) Supported orientations
 # Valid options are: landscape, portrait, portrait-reverse or landscape-reverse
@@ -87,7 +87,7 @@ fullscreen = 0
 # see https://lottiefiles.com/ for examples and https://airbnb.design/lottie/
 # for general documentation.
 # Lottie files can be created using various tools, like Adobe After Effect or Synfig.
-android.presplash_lottie = %(source.dir)s/assets/anim.json
+#android.presplash_lottie = "path/to/lottie/file.json"
 
 # (str) Adaptive icon of the application (used if Android API level is 26+ at runtime)
 #icon.adaptive_foreground.filename = %(source.dir)s/data/icon_fg.png
@@ -95,17 +95,17 @@ android.presplash_lottie = %(source.dir)s/assets/anim.json
 
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions/#build-options-1 for all the supported syntaxes and properties)
-#android.permissions = android.permission.INTERNET, (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)
-android.permissions = CAMERA, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE,INTERNET, ACCESS_NETWORK_STATE
+android.permissions = android.permission.INTERNET
+#, (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
 
 # (int) Target Android API, should be as high as possible.
-android.api = 34
+android.api = 33
 
 # (int) Minimum API your APK / AAB will support.
-android.minapi = 28
+#android.minapi = 21
 
 # (int) Android SDK version to use
 #android.sdk = 20
@@ -131,7 +131,7 @@ android.minapi = 28
 # (bool) If True, then skip trying to update the Android sdk
 # This can be useful to avoid excess Internet downloads or save time
 # when an update is due and you just want to test/build your package
-# android.skip_update = False
+android.skip_update = True
 
 # (bool) If True, then automatically accept SDK license
 # agreements. This is intended for automation only. If set to False,
@@ -178,7 +178,7 @@ android.minapi = 28
 
 # (list) List of Java files to add to the android project (can be java or a
 # directory containing the files)
-#android.add_src =
+android.add_src = ./src
 
 # (list) Android AAR archives to add
 #android.add_aars =
@@ -203,17 +203,18 @@ android.minapi = 28
 
 # (list) Gradle dependencies to add
 #android.gradle_dependencies =
+#android.gradle_dependencies = com.google.android.gms:play-services-ads:22.4.0, androidx.appcompat:appcompat:1.6.1, androidx.activity:activity:1.6.1
 android.gradle_dependencies = com.google.firebase:firebase-ads:19.6.0
 # (bool) Enable AndroidX support. Enable when 'android.gradle_dependencies'
 # contains an 'androidx' package, or any package from Kotlin source.
 # android.enable_androidx requires android.api >= 28
-#android.enable_androidx = True
 android.enable_androidx = True
+
 # (list) add java compile options
 # this can for example be necessary when importing certain java libraries using the 'android.gradle_dependencies' option
 # see https://developer.android.com/studio/write/java8-support for further information
-# android.add_compile_options = "sourceCompatibility = 1.8", "targetCompatibility = 1.8"
 android.add_compile_options = "sourceCompatibility = 1.11", "targetCompatibility = 1.11"
+
 # (list) Gradle repositories to add {can be necessary for some android.gradle_dependencies}
 # please enclose in double quotes 
 # e.g. android.gradle_repositories = "maven { url 'https://kotlin.bintray.com/ktor' }"
@@ -262,6 +263,7 @@ android.add_compile_options = "sourceCompatibility = 1.11", "targetCompatibility
 
 # (list) Android application meta-data to set (key=value format)
 #android.meta_data =
+android.meta_data = com.google.android.gms.ads.APPLICATION_ID=ca-app-pub-2987282397801743~7612741649
 
 # (list) Android library project to add (will be added in the
 # project.properties automatically.)
@@ -271,7 +273,7 @@ android.add_compile_options = "sourceCompatibility = 1.11", "targetCompatibility
 #android.uses_library =
 
 # (str) Android logcat filters to use
-android.logcat_filters = *:S python:D
+#android.logcat_filters = *:S python:D
 
 # (bool) Android logcat only display log for activity's pid
 #android.logcat_pid_only = False
@@ -284,7 +286,7 @@ android.logcat_filters = *:S python:D
 
 # (list) The Android archs to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
 # In past, was `android.arch` as we weren't supporting builds for multiple archs at the same time.
-android.archs = arm64-v8a
+android.archs = arm64-v8a, armeabi-v7a
 
 # (int) overrides automatic versionCode computation (used in build.gradle)
 # this is not the same as app version and should only be edited if you know what you're doing

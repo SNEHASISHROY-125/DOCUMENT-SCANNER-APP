@@ -42,11 +42,13 @@ class CustomRecycleView(MDRecycleView):
 
 class MainApp(MDApp):
     # KV_FILES = [os.path.join(KV_DIR, kv_file) for kv_file in os.listdir(KV_DIR) if kv_file.endswith(".kv")]
-    KV_FILES = [[os.path.join(KV_DIR, "app.kv"),os.path.join(KV_DIR, "UI.kv"),os.path.join('quick_create.kv'),os.path.join('CustomCard.kv')][0]]
+    KV_FILES = [[os.path.join(KV_DIR, "app.kv"),os.path.join(KV_DIR, "main.kv"),os.path.join('quick_create.kv'),os.path.join('CustomCard.kv')][1]]
     DEBUG = True
 
     # app-internals
     dialog = None
+    animated_info_dialog = None
+    micro_info_dialog = None
     show_line = BooleanProperty(False)
     fit_display_source = StringProperty("segno_custom_qr_code.png")
     #
@@ -59,6 +61,7 @@ class MainApp(MDApp):
     qr_code_micro = BooleanProperty(False)
     qr_save_dir = StringProperty("src/qr")
     ### features | animated qr
+    gen_btn = BooleanProperty(False)
     web_sync_btn = ... # IconButton
     file_picker_card  = ... # instance of MDCard
     tempUrlFile = StringProperty()
@@ -67,7 +70,7 @@ class MainApp(MDApp):
     def build_app(self):  # hotreload-build
     # def build(self):
         global color_picker
-        color_picker = MDColorPicker(size_hint=(0.45, 0.85))
+        color_picker = MDColorPicker(size_hint=(None, None), size=(150, 200))
         color_picker.set_color_to = "icon_brush_color"
         # color_picker.open()
         color_picker.bind(
@@ -83,8 +86,14 @@ class MainApp(MDApp):
                 file_list.append(os.path.join(root, file))
 
         print(file_list)
-        return Factory.HomeScreen()
-    
+        return Factory.AdvancedQRScreen()
+    def generate_qr_code_icon(self):
+        import time as t
+        def _():
+            Clock.schedule_once(lambda x: setattr(self ,'gen_btn' ,True), 0.1)
+            t.sleep(5)
+            Clock.schedule_once(lambda x: setattr(self ,'gen_btn' ,False), 0.1)
+        threading.Thread(target=_).start()
     def _verify_and_fetch_from_url(self, url:str):
         # def _validate(url:str):
         from urllib.request import urlopen
@@ -143,8 +152,39 @@ class MainApp(MDApp):
         _modal  =   ModalView(size_hint=(.8, .8), auto_dismiss=False, background='', background_color=[0, 0, 0, 0])
         _modal.add_widget(MDSpinner(line_width=dp(5.25), size_hint=(None, None), size=(120, 120), pos_hint={'center_x': .5, 'center_y': .5}, active=True))  # Load and play the GIF
 
+    def show_info_micro(self):
+        if 7==7: #not self.micro_info_dialog:
+            self.micro_info_dialog = MDDialog(
+                    title="What are Micro QR Codes ?",
+                    # halign="center",
+                    type="custom",
+                    width_offset=dp(30),
+                    content_cls=Builder.load_file('kv/micro_qr.kv'),
+                    buttons=[
+                        MDFlatButton(
+                            text="OK",
+                            on_release=lambda x: self.micro_info_dialog.dismiss()
+                        ),
+                    ],
+                )
+        self.micro_info_dialog.children[0].children[-1].halign="center"
+        self.micro_info_dialog.open()
         
-    
+    def show_info_animated(self):
+        if 6==6: #not self.animated_info_dialog:
+            self.animated_info_dialog = MDDialog(
+                    title="",
+                    type="custom",
+                    width_offset=dp(30),
+                    content_cls=Builder.load_file('kv/animated_qr.kv'),
+                    buttons=[
+                        MDFlatButton(
+                            text="OK",
+                            on_release=lambda x: self.animated_info_dialog.dismiss()
+                        ),
+                    ],
+                )
+        self.animated_info_dialog.open()
 
     def open_color_picker(self,set_color_to):
         color_picker.set_color_to = set_color_to

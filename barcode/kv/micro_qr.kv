@@ -1,0 +1,23 @@
+#kv/micro_qr
+
+MDBoxLayout:
+	orientation: 'vertical'
+	padding: [10,10,10,10]
+	spacing: dp(11)
+	adaptive_height: True  # This ensures dynamic height adjustment
+	# md_bg_color: .4, .3, .9, 1
+	spacing: dp(30)
+	
+
+	Image:
+		source: "assets/qr_micro.png"
+		size_hint: None, None
+		size: dp(170), dp(200)
+		pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+		allow_stretch: True
+		keep_ratio: False
+	MDLabel:
+		text: "Micro QR is the smaller version of QR codes,\nthey can store up to 10 numeric characters.\ndesigned for applications where space is limited."
+		halign: 'center'
+		theme_text_color: 'Primary'
+		font_size: '11sp'

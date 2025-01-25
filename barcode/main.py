@@ -25,7 +25,7 @@ import threading
 from datetime import datetime
 #
 # ADs
-from kivmoblite import Admob
+# from kivmoblite import Admob
 
 from kivy.animation import Animation
 from kivy.uix.modalview import ModalView
@@ -99,9 +99,13 @@ class MyApp(MDApp):
 
     # app-internals
     dialog = None
+    del_dialog = None
+    animated_info_dialog = None
+    micro_info_dialog = None
     show_line = BooleanProperty(False)
     fit_display_source = StringProperty("src/qr/9Ranimated_qr_code_20250120122818.gif")
     ### features | animated qr
+    gen_btn = BooleanProperty(False)
     web_sync_btn = ... # IconButton TODO to be added
     file_picker_card  = ... # instance of MDCard TODO to be added
     generate_qr_btn = ... # instance of MDIconButton TODO to be added
@@ -134,7 +138,7 @@ class MyApp(MDApp):
     def set_bars_colors(self):
             set_bars_colors(
                 self.theme_cls.primary_color,  # status bar color
-                self.theme_cls.primary_color,  # navigation bar color
+                # self.theme_cls.primary_color,  # navigation bar color
                 "Dark",                       # icons color of status bar
             )
 
@@ -187,7 +191,7 @@ class MyApp(MDApp):
     def _show_baner(self):
         if platform == 'android':
             self.ads.banner_pos("top")
-            self.ads.show_banner()
+            # self.ads.show_banner()
         else:
             print('Not supported on this platform')
     def _hide_baner(self):
@@ -202,6 +206,7 @@ class MyApp(MDApp):
             self.ads = Admob(ad_ids)
             self.ads.new_banner(position = "bottom", color = "#ffffff", margin = 0) # Adaptive banner
             self.ads.request_banner()
+            self.ads.banner_pos("top")
         #
         self.theme_cls.theme_style = 'Dark' 
         self.set_bars_colors()
@@ -257,7 +262,7 @@ class MyApp(MDApp):
         global _modal
         _modal  =   ModalView(size_hint=(.8, .8), auto_dismiss=False, background='', background_color=[0, 0, 0, 0])
         _modal.add_widget(MDSpinner(line_width=dp(5.25), size_hint=(None, None), size=(Window.width * 0.6, Window.width * 0.6), pos_hint={'center_x': .5, 'center_y': .5}, active=True))  # Load and play the GIF
-        _modal.add_widget(MDLabel(text="Please Wait", halign='center', pos_hint={'center_x': .5, 'center_y': .4}))
+        _modal.add_widget(MDLabel(text="Please Wait",font_size='20sp', halign='center', pos_hint={'center_x': .5, 'center_y': .4}))
         #
         global Preview_modal
         if not Preview_modal:
@@ -280,6 +285,39 @@ class MyApp(MDApp):
         self.file_picker_card = self.root.get_screen('advanced_qr').ids.file_picker_card
         self.generate_qr_btn = self.root.get_screen('advanced_qr').ids.generate_qr_btn
     
+    def show_info_micro(self):
+        if not self.micro_info_dialog:
+            self.micro_info_dialog = MDDialog(
+                    title="What are Micro QR Codes ?",
+                    # halign="center",
+                    type="custom",
+                    width_offset=dp(30),
+                    content_cls=Builder.load_file('kv/micro_qr.kv'),
+                    buttons=[
+                        MDFlatButton(
+                            text="OK",
+                            on_release=lambda x: self.micro_info_dialog.dismiss()
+                        ),
+                    ],
+                )
+        self.micro_info_dialog.children[0].children[-1].halign="center"
+        self.micro_info_dialog.open()
+        
+    def show_info_animated(self):
+        if not self.animated_info_dialog:
+            self.animated_info_dialog = MDDialog(
+                    title="",
+                    type="custom",
+                    width_offset=dp(30),
+                    content_cls=Builder.load_file('kv/animated_qr.kv'),
+                    buttons=[
+                        MDFlatButton(
+                            text="OK",
+                            on_release=lambda x: self.animated_info_dialog.dismiss()
+                        ),
+                    ],
+                )
+        self.animated_info_dialog.open()
 
     def refresh_files(self) -> list:
         file_list = []
@@ -305,22 +343,23 @@ class MyApp(MDApp):
             Clock.schedule_once(lambda dt :self.toast("🗑️ File deleted"), 0.2)
             Clock.schedule_once(lambda dt : self.refresh_files() ,0.3)
         
-        self.del_dialog = MDDialog(
-                title="Do You Want to Delete this File?",
-                type="custom",
-                width_offset=dp(30),
-                content_cls=Builder.load_file('kv/delete.kv'),
-                buttons=[
-                    MDFlatButton(
-                        text="DELETE",
-                        on_release=lambda x: Thread(target=_del).start()
-                    ),
-                    MDFlatButton(
-                        text="CANCEL",
-                        on_release=lambda x: self.del_dialog.dismiss()
-                    ),
-                ],
-            )
+        if not self.del_dialog:
+            self.del_dialog = MDDialog(
+                    title="Do You Want to Delete this File?",
+                    type="custom",
+                    width_offset=dp(30),
+                    content_cls=Builder.load_file('kv/delete.kv'),
+                    buttons=[
+                        MDFlatButton(
+                            text="DELETE",
+                            on_release=lambda x: Thread(target=_del).start()
+                        ),
+                        MDFlatButton(
+                            text="CANCEL",
+                            on_release=lambda x: self.del_dialog.dismiss()
+                        ),
+                    ],
+                )
         self.del_dialog.open()
         # Thread(target=_del).start()
 
@@ -340,14 +379,14 @@ class MyApp(MDApp):
                         request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
                 ## create a file in Private storage
-
-                # copy the file to a new name , then share it
-                with open(file, 'rb') as f:
-                    new_file_name = os.path.join('src/_cache',f'{get_time()}.png')
-                    with open(new_file_name, 'wb') as nf:
-                        nf.write(f.read())
-                        nf.close()
-                    f.close()
+                new_file_name = file
+                # # copy the file to a new name , then share it
+                # with open(file, 'rb') as f:
+                #     new_file_name = os.path.join('src/_cache',f'{get_time()}.png')
+                #     with open(new_file_name, 'wb') as nf:
+                #         nf.write(f.read())
+                #         nf.close()
+                #     f.close()
                 # copy to shared storage and get the uri
                 if platform == 'android':
                     filename = SharedStorage().copy_to_shared(new_file_name)
@@ -366,7 +405,8 @@ class MyApp(MDApp):
                 Clock.schedule_once(lambda dt :self.toast("❌ Couldn't share file"),.2)
                 Clock.schedule_once(lambda x : _modal.dismiss(),.2)
             finally:
-                os.remove(new_file_name)
+                # os.remove(new_file_name)
+                print('file shared',file)
                 Clock.schedule_once(lambda x : _modal.dismiss(),.2)
         #
         Thread(target=_share).start()
@@ -468,9 +508,12 @@ class MyApp(MDApp):
 
                 else:
                     print('Could not generate QR\ngot not qr file from callback see logs.')
+                    Clock.schedule_once(lambda dt: self.toast("Something went wrong ! ❌"),.2)
             except Exception as e:
                 print('The file is not a valid image.\n' "error" , e)
                 Clock.schedule_once(lambda dt: self.toast("Something went wrong ! ❌"),.2)
+                Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
+            finally:
                 Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
         Thread(target=_gen).start()
         print(self.tempUrlFile,os.path.isfile(self.tempUrlFile))

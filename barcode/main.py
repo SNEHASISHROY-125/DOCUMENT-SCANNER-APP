@@ -24,8 +24,6 @@ from typing import Union
 import threading 
 from datetime import datetime
 #
-# ADs
-# from kivmoblite import Admob
 
 from kivy.animation import Animation
 from kivy.uix.modalview import ModalView
@@ -37,6 +35,10 @@ from kivymd.utils.set_bars_colors import set_bars_colors
 from kivy.config import Config
 Config.set('kivy', 'pause_on_minimize', '1')
 Window.softinput_mode = "below_target"
+
+# ADs
+if platform == 'android':
+    from kivmoblite import Admob
 
 import codegen
 
@@ -103,7 +105,7 @@ class MyApp(MDApp):
     animated_info_dialog = None
     micro_info_dialog = None
     show_line = BooleanProperty(False)
-    fit_display_source = StringProperty("src/qr/9Ranimated_qr_code_20250120122818.gif")
+    fit_display_source = StringProperty("assets/color-picker-qr.png")
     ### features | animated qr
     gen_btn = BooleanProperty(False)
     web_sync_btn = ... # IconButton TODO to be added
@@ -137,9 +139,9 @@ class MyApp(MDApp):
     
     def set_bars_colors(self):
             set_bars_colors(
-                self.theme_cls.primary_color,  # status bar color
-                # self.theme_cls.primary_color,  # navigation bar color
-                "Dark",                       # icons color of status bar
+                [0, 0, 1, 0.53],  # status bar color
+                [0.13, 0.13, 0.13, 1],  # navigation bar color
+                "Dark",  # icons color of status bar
             )
 
     def toast(self,text:str, duration=1.0):
@@ -206,13 +208,15 @@ class MyApp(MDApp):
             self.ads = Admob(ad_ids)
             self.ads.new_banner(position = "bottom", color = "#ffffff", margin = 0) # Adaptive banner
             self.ads.request_banner()
-            self.ads.banner_pos("top")
         #
         self.theme_cls.theme_style = 'Dark' 
         self.set_bars_colors()
         return Builder.load_file('kv/app.kv')
     
     def on_start(self):
+        if platform == 'android':
+            self.ads.banner_pos("top")
+            self.ads.hide_banner()
         self.refresh_files()
         self.fps_monitor_start()
         #
@@ -339,6 +343,7 @@ class MyApp(MDApp):
             except Exception as e:
                 print(e)
                 self.toast("❌ Couldn't delete file")
+                return
             Clock.schedule_once(lambda dt: self.del_dialog.dismiss(), 0.1)
             Clock.schedule_once(lambda dt :self.toast("🗑️ File deleted"), 0.2)
             Clock.schedule_once(lambda dt : self.refresh_files() ,0.3)
@@ -379,14 +384,14 @@ class MyApp(MDApp):
                         request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
                 ## create a file in Private storage
-                new_file_name = file
+                # new_file_name = file
                 # # copy the file to a new name , then share it
-                # with open(file, 'rb') as f:
-                #     new_file_name = os.path.join('src/_cache',f'{get_time()}.png')
-                #     with open(new_file_name, 'wb') as nf:
-                #         nf.write(f.read())
-                #         nf.close()
-                #     f.close()
+                with open(file, 'rb') as f:
+                    new_file_name = os.path.join('src/_cache',get_time()+"_"+os.path.basename(file))
+                    with open(new_file_name, 'wb') as nf:
+                        nf.write(f.read())
+                        nf.close()
+                    f.close()
                 # copy to shared storage and get the uri
                 if platform == 'android':
                     filename = SharedStorage().copy_to_shared(new_file_name)
@@ -405,7 +410,7 @@ class MyApp(MDApp):
                 Clock.schedule_once(lambda dt :self.toast("❌ Couldn't share file"),.2)
                 Clock.schedule_once(lambda x : _modal.dismiss(),.2)
             finally:
-                # os.remove(new_file_name)
+                os.remove(new_file_name)
                 print('file shared',file)
                 Clock.schedule_once(lambda x : _modal.dismiss(),.2)
         #

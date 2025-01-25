@@ -29,7 +29,7 @@ source.include_exts = py,png,jpg,kv,atlas,ttf,json,gif
 #source.exclude_patterns = license,images/*/*.jpg
 
 # (str) Application versioning (method 1)
-version = 0.9.0
+version = 0.9.1
 
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]
@@ -262,7 +262,7 @@ android.add_compile_options = "sourceCompatibility = 1.11", "targetCompatibility
 
 # (list) Android application meta-data to set (key=value format)
 #android.meta_data =
-
+android.meta_data = com.google.android.gms.ads.APPLICATION_ID=ca-app-pub-2987282397801743~7612741649
 # (list) Android library project to add (will be added in the
 # project.properties automatically.)
 #android.library_references =

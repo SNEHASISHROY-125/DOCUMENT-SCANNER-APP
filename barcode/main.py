@@ -104,6 +104,7 @@ class MyApp(MDApp):
     del_dialog = None
     animated_info_dialog = None
     micro_info_dialog = None
+    file_to_delete = StringProperty("")
     show_line = BooleanProperty(False)
     fit_display_source = StringProperty("assets/color-picker-qr.png")
     ### features | animated qr
@@ -139,7 +140,7 @@ class MyApp(MDApp):
     
     def set_bars_colors(self):
             set_bars_colors(
-                [0, 0, 1, 0.53],  # status bar color
+                [0.15, 0.35, 0.8, 0.35],  # status bar color
                 [0.13, 0.13, 0.13, 1],  # navigation bar color
                 "Dark",  # icons color of status bar
             )
@@ -304,7 +305,10 @@ class MyApp(MDApp):
                         ),
                     ],
                 )
-        self.micro_info_dialog.children[0].children[-1].halign="center"
+            self.micro_info_dialog.children[0].children[-1].halign="center"
+            self.micro_info_dialog.children[0].children[-1].font_size="15sp"
+            self.micro_info_dialog.children[0].children[-1].theme_text_color = "Custom"
+            self.micro_info_dialog.children[0].children[-1].text_color = [130/255, 247/255, 27/255, 0.8]  # Red color
         self.micro_info_dialog.open()
         
     def show_info_animated(self):
@@ -336,17 +340,22 @@ class MyApp(MDApp):
         ]
         return file_list
 
-    def delete_file(self, file):
-        def _del():
+        
+    def _del(self):
+        def _():
             try:
-                os.remove(file)
+                os.remove(self.file_to_delete)
             except Exception as e:
                 print(e)
-                self.toast("❌ Couldn't delete file")
+                Clock.schedule_once(lambda dt: self.toast("❌ Couldn't delete file"),0.1)
                 return
-            Clock.schedule_once(lambda dt: self.del_dialog.dismiss(), 0.1)
             Clock.schedule_once(lambda dt :self.toast("🗑️ File deleted"), 0.2)
             Clock.schedule_once(lambda dt : self.refresh_files() ,0.3)
+        Clock.schedule_once(lambda dt: self.del_dialog.dismiss(), 0.1)
+        Thread(target=_).start()
+
+    def delete_file(self, file):
+        self.file_to_delete = file
         
         if not self.del_dialog:
             self.del_dialog = MDDialog(
@@ -357,7 +366,7 @@ class MyApp(MDApp):
                     buttons=[
                         MDFlatButton(
                             text="DELETE",
-                            on_release=lambda x: Thread(target=_del).start()
+                            on_release=lambda x: self._del()
                         ),
                         MDFlatButton(
                             text="CANCEL",
@@ -365,8 +374,8 @@ class MyApp(MDApp):
                         ),
                     ],
                 )
+        
         self.del_dialog.open()
-        # Thread(target=_del).start()
 
     def share_file(self, file:str):
         if not os.path.exists(file):

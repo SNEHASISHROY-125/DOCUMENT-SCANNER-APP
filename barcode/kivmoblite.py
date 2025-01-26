@@ -27,7 +27,7 @@ if platform == "android":
         AdView = autoclass("com.google.android.gms.ads.AdView")
         Bundle = autoclass("android.os.Bundle")
         Gravity = autoclass("android.view.Gravity")
-        InterstitialAd = autoclass("com.google.android.gms.ads.InterstitialAd")
+        InterstitialAd = autoclass("com.google.android.gms.ads.interstitial.InterstitialAd")
         LayoutParams = autoclass("android.view.ViewGroup$LayoutParams")
         LinearLayout = autoclass("android.widget.LinearLayout")
         View = autoclass("android.view.View")
@@ -46,7 +46,7 @@ class Admob():
         self._loaded = False
         self.visiable = False
         self._test_devices = self.ad["testD"] if "testD" in self.ad.keys() and isinstance(self.ad["testD"], list) else []
-        MobileAds.initialize(activity.mActivity, self.ad["appId"])
+        MobileAds.initialize(activity.mActivity)
 
 # Banner Ad
 

@@ -29,7 +29,7 @@ source.include_exts = py,png,jpg,kv,atlas,ttf,json,gif
 #source.exclude_patterns = license,images/*/*.jpg
 
 # (str) Application versioning (method 1)
-version = 0.9.2
+version = 0.9.3
 
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]
@@ -203,7 +203,7 @@ android.minapi = 28
 
 # (list) Gradle dependencies to add
 #android.gradle_dependencies =
-android.gradle_dependencies = com.google.firebase:firebase-ads:21.0.0
+android.gradle_dependencies = com.google.android.gms:play-services-ads:21.0.0, com.google.firebase:firebase-ads:21.0.0
 # (bool) Enable AndroidX support. Enable when 'android.gradle_dependencies'
 # contains an 'androidx' package, or any package from Kotlin source.
 # android.enable_androidx requires android.api >= 28

@@ -24,15 +24,14 @@ ScreenManager:
         FrostedGlass:
             background: rv
             size_hint_y: None
-            height: dp(60)
-            blur_size: 45
-            saturation: 1.5
-            luminosity: 1.5
-            overlay_color:  "#0000FF88"
-            noise_opacity: 0.0
-            # border_radius:  dp(200), dp(200), dp(200), dp(200)
-            outline_color: "#000080"
-            outline_width: 1
+            height: dp(70)
+            blur_size: 38
+            saturation: 0.65
+            luminosity: 1.15
+            overlay_color: [0.15, 0.35, 0.8, 0.35]
+            outline_color: [0.1, 0.1, 0.35, 0.9]
+            outline_width: 0.6
+            noise_opacity: 0.08
             MDBoxLayout:
                 id : top_app_bar
                 orientation: 'horizontal'
@@ -45,13 +44,13 @@ ScreenManager:
                     bold: True
                     color: 'blue'
                     font_size: dp(25)
-                MDIconButton:
-                    id : top_app_bar_btn_left
-                    icon: 'plus'
-                    pos_hint: {'center_x': 0.7, 'center_y': 0.5}
-                    # size_hint_x: .3
-                    # size: dp(50), dp(50)
-                    # on_release: app.generate_codes()
+                # MDIconButton:
+                #     id : top_app_bar_btn_left
+                #     icon: 'plus'
+                #     pos_hint: {'center_x': 0.7, 'center_y': 0.5}
+                #     # size_hint_x: .3
+                #     # size: dp(50), dp(50)
+                #     # on_release: app.generate_codes()
             
         MDBottomNavigation:
             id: bottom_nav

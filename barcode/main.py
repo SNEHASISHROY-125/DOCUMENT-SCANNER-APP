@@ -59,7 +59,7 @@ if not os.path.exists('./tmp_cache'):
 ad_ids = {
         "appId": "ca-app-pub-2987282397801743~7612741649",
         "banId": "ca-app-pub-2987282397801743/6842585450",
-        "intId": "ca-app-pub-3940256099942544/1033173712",
+        "intId": "ca-app-pub-2987282397801743/7168106242",
         "testD": []
         }
 
@@ -128,7 +128,7 @@ class MyApp(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.title = "Barcode"
-        self.theme_cls.primary_palette = "Teal"
+        self.theme_cls.primary_palette = "Blue"
         self.theme_cls.primary_hue = "500"
         self.theme_cls.theme_style = 'Dark'
         #
@@ -218,14 +218,16 @@ class MyApp(MDApp):
         if platform == 'android':
             self.ads.banner_pos("top")
             self.ads.hide_banner()
+            self.ads.request_interstitial()
+            self.ads.show_interstitial()
         self.refresh_files()
-        self.fps_monitor_start()
+        # self.fps_monitor_start()
         #
         self._init_loading_widget()
         #
-        if platform == 'android':
-            from android.permissions import request_permissions, Permission
-            request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
+        # if platform == 'android':
+        #     from android.permissions import request_permissions, Permission
+        #     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
     def on_pause(self):
         return True
@@ -294,9 +296,9 @@ class MyApp(MDApp):
         if not self.micro_info_dialog:
             self.micro_info_dialog = MDDialog(
                     title="What are Micro QR Codes ?",
-                    # halign="center",
                     type="custom",
-                    width_offset=dp(30),
+                    size_hint=(0.8, 0.4),
+                    # width_offset=dp(30),
                     content_cls=Builder.load_file('kv/micro_qr.kv'),
                     buttons=[
                         MDFlatButton(
@@ -316,7 +318,8 @@ class MyApp(MDApp):
             self.animated_info_dialog = MDDialog(
                     title="",
                     type="custom",
-                    width_offset=dp(30),
+                    size_hint= (0.8, 0.4),
+                    # width_offset=dp(30),
                     content_cls=Builder.load_file('kv/animated_qr.kv'),
                     buttons=[
                         MDFlatButton(

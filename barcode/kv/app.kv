@@ -26,12 +26,12 @@ ScreenManager:
             size_hint_y: None
             height: dp(70)
             blur_size: 38
-            saturation: 0.65
+            saturation: 0.9
             luminosity: 1.15
-            overlay_color: [0.15, 0.35, 0.8, 0.35]
+            overlay_color: [0.15, 0.35, 0.8, 0.97]
             outline_color: [0.1, 0.1, 0.35, 0.9]
             outline_width: 0.6
-            noise_opacity: 0.08
+            noise_opacity: 0.0
             MDBoxLayout:
                 id : top_app_bar
                 orientation: 'horizontal'
@@ -67,12 +67,11 @@ ScreenManager:
                 CustomRecycleView:
                     id: rv
 
-                MDFloatingActionButton:
+                MDIconButton:
                     icon: "plus"
                     md_bg_color: app.theme_cls.primary_color
                     pos_hint: {'center_x': 0.5, 'center_y': 0.1}
-                    # size_hint: None, None
-                    # size: dp(150), dp(150)
+                    icon_size: '32sp'
                     on_release: app.generate_codes()
         
             # MDBottomNavigationItem:

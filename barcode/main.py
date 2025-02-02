@@ -218,6 +218,7 @@ class MyApp(MDApp):
         if platform == 'android':
             self.ads.banner_pos("top")
             self.ads.hide_banner()
+            self.ads.new_interstitial()  # Initialize interstitial
             self.ads.request_interstitial()
             self.ads.show_interstitial()
         self.refresh_files()

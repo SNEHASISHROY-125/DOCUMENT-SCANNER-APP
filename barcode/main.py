@@ -207,8 +207,9 @@ class MyApp(MDApp):
         # ADs
         if platform == 'android':
             self.ads = Admob(ad_ids)
-            self.ads.new_banner(position = "bottom", color = "#ffffff", margin = 0) # Adaptive banner
+            self.ads.new_banner(position = [0,0], color = "#ffffff", margin = 0) # Adaptive banner
             self.ads.request_banner()
+            self.ads.hide_banner()
         #
         self.theme_cls.theme_style = 'Dark' 
         self.set_bars_colors()
@@ -216,8 +217,7 @@ class MyApp(MDApp):
     
     def on_start(self):
         if platform == 'android':
-            self.ads.banner_pos("top")
-            self.ads.hide_banner()
+            # self.ads.banner_pos("top")
             self.ads.new_interstitial()  # Initialize interstitial
             self.ads.request_interstitial()
             self.ads.show_interstitial()

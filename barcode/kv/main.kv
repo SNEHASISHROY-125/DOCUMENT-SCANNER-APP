@@ -113,6 +113,8 @@
                 do_scroll_y: True
                 size_hint_y: None
                 height: dp(330)
+                bar_color: 0, 0, 0, 0
+                bar_width: dp(0)
                 md_bg_color: 1,1,1,0
                 MDBoxLayout:
                     orientation: "vertical"
@@ -187,36 +189,36 @@
                             id: info
                             icon: "information"
                             on_release: app.show_info_animated()
-                    MDBoxLayout:
-                        # orientation: 'vertical'
-                        adaptive_height: True  # This ensures dynamic height adjustment
-                        md_bg_color: .4, .3, .9, 1
-                        # MDLabel:
-                        #     text: ""
-                        #     size_hint_x: 0.023
-                        #     halign: "left"
-                        MDTextField:
-                            id: url_field
-                            text: ""
-                            hint_text: "Enter hosted file URL"
-                            helper_text: "should be direct link to file"
-                            helper_text_mode: "persistent"
-                            # size_hint_x: 0.7
-                            pos_hint: {"center_x": 0.5, "center_y": 0.5}
-                            mode: "round"
-                            icon_right: "file"
-                            disabled: True if not  Awesome_switch.active else False
-                            max_text_length: 150
-                            # required: False
-                        MDIconButton:
-                            id: web_sync
-                            icon: "web-sync"
-                            disabled: True if not Awesome_switch.active else False
-                            on_release: 
-                                file_picker_card.disabled =  True
-                                self.disabled = True
-                                generate_qr_btn.disabled = True
-                                app._verify_and_fetch_from_url(url_field.text)
+                    # MDBoxLayout:
+                    #     # orientation: 'vertical'
+                    #     adaptive_height: True  # This ensures dynamic height adjustment
+                    #     md_bg_color: .4, .3, .9, 1
+                    #     # MDLabel:
+                    #     #     text: ""
+                    #     #     size_hint_x: 0.023
+                    #     #     halign: "left"
+                    #     MDTextField:
+                    #         id: url_field
+                    #         text: ""
+                    #         hint_text: "Enter hosted file URL"
+                    #         helper_text: "should be direct link to file"
+                    #         helper_text_mode: "persistent"
+                    #         # size_hint_x: 0.7
+                    #         pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                    #         mode: "round"
+                    #         icon_right: "file"
+                    #         disabled: True if not  Awesome_switch.active else False
+                    #         max_text_length: 150
+                    #         # required: False
+                    #     MDIconButton:
+                    #         id: web_sync
+                    #         icon: "web-sync"
+                    #         disabled: True if not Awesome_switch.active else False
+                    #         on_release: 
+                    #             file_picker_card.disabled =  True
+                    #             self.disabled = True
+                    #             generate_qr_btn.disabled = True
+                    #             app._verify_and_fetch_from_url(url_field.text)
                             # canvas.after:
                         
                     
@@ -226,16 +228,16 @@
                         size_hint_y: None
                         height: self.minimum_height
                         pos_hint: {'center_x': 0.5,'center_y': 0.5}
-                        padding: [0, 30, 0, 0]
+                        padding: [0, 20, 0, 0]
                         spacing: "10dp"
                         md_bg_color: 0, 1, .4, 0
                         MDLabel:
-                            text: "OR Pick A File"
+                            text: "Set QR code Background"
                             font_size: "15sp"
                             bold: True
                             theme_text_color: "Custom"
-                            text_color: app.theme_cls.primary_color
-                            size_hint_x: 0.8 
+                            text_color: app.theme_cls.primary_color if Awesome_switch.active else [1, 1, 1, 1]
+                            size_hint_x: 1
                             halign: "center"
                         MDCard:
                             id: file_picker_card
@@ -407,6 +409,151 @@
                     MDLabel:
                         text: ""
                         size_hint_y: None
+                        height: dp(20)
+
+                    MDLabel:
+                        text: "Try Frames"
+                        halign: "center"
+                        size_hint_y: None
+                        height: dp(20)
+
+                    MDLabel:
+                        text: ""
+                        size_hint_y: None
+                        height: dp(5)
+                    
+                    MDCard:
+                        padding: [dp(10), dp(0), dp(10), 0]
+                        size_hint: 1 ,None
+                        height: "70dp"
+                        # pos_hint: {"center_x": 0.5, "center_y": 0.05}
+                        # elevation: 10
+                        md_bg_color: rgba(102, 6, 229)  #.4, .3, .9, 1
+
+                        ScrollView:
+                            do_scroll_x: True
+                            do_scroll_y: False
+                            size_hint_y: None
+                            # bar_width: dp(10)
+                            bar_color: 0, 0, 0, 0
+                            height: dp(70)
+                            # md_bg_color: 1,1,1,0
+
+                            MDBoxLayout:
+                                orientation: 'horizontal'
+                                padding: [dp(10), 0, dp(10), 0]
+                                spacing: "10dp"
+                                size_hint_x: None
+                                width: self.minimum_width
+
+                                SelectableImage:
+                                    id: img7
+                                    source: "assets/color-picker-qr.png"
+                                    selected: True
+                                    color_code: 0, 0, 0
+                                    on_release: 
+                                        app.fit_display_source = img7.source
+                                        app.qr_code_color = img7.color_code
+                                        print("Image clicked")
+                                        img1.selected = False
+                                        img2.selected = False
+                                        img3.selected = False
+                                        img4.selected = False
+                                        img5.selected = False
+                                        img6.selected = False
+
+                                SelectableImage:
+                                    id: img6
+                                    source: "assets/qr_code_20210919123461.png"
+                                    color_code: 0, 0, 0
+                                    on_release: 
+                                        print("Image clicked")
+                                        app.fit_display_source = img6.source
+                                        app.qr_code_color = img6.color_code
+                                        img1.selected = False
+                                        img2.selected = False
+                                        img3.selected = False
+                                        img4.selected = False
+                                        img5.selected = False
+                                        img7.selected = False
+
+                                SelectableImage:
+                                    id: img5
+                                    source: "assets/qr_code_20210919123460.png"
+                                    color_code: 238, 252, 40
+                                    on_release: 
+                                        app.fit_display_source = img5.source
+                                        app.qr_code_color = img5.color_code
+                                        print("Image clicked")
+                                        img1.selected = False
+                                        img2.selected = False
+                                        img3.selected = False
+                                        img4.selected = False
+                                        img6.selected = False
+                                        img7.selected = False
+
+                                SelectableImage:
+                                    id: img1
+                                    source: "assets/qr_code_20210919123456.png"
+                                    color_code: 217, 37, 217
+                                    on_release: 
+                                        app.fit_display_source = img1.source
+                                        app.qr_code_color = img1.color_code
+                                        print("Image clicked" , self.color_code)
+                                        img2.selected = False
+                                        img3.selected = False
+                                        img4.selected = False
+                                        img5.selected = False
+                                        img6.selected = False
+                                        img7.selected = False
+
+                                SelectableImage:
+                                    id: img2
+                                    source: "assets/qr_code_20210919123457.png"
+                                    color_code: 36, 56, 237
+                                    on_release: 
+                                        app.fit_display_source = img2.source
+                                        app.qr_code_color = img2.color_code
+                                        print("Image clicked")
+                                        img1.selected = False
+                                        img3.selected = False
+                                        img4.selected = False
+                                        img5.selected = False
+                                        img6.selected = False
+                                        img7.selected = False
+
+                                SelectableImage:
+                                    id: img3
+                                    source: "assets/qr_code_20210919123458.png"
+                                    color_code: 245, 100, 22
+                                    on_release: 
+                                        app.fit_display_source = img3.source
+                                        app.qr_code_color = img3.color_code
+                                        print("Image clicked")
+                                        img1.selected = False
+                                        img2.selected = False
+                                        img4.selected = False
+                                        img5.selected = False
+                                        img6.selected = False
+                                        img7.selected = False
+                                
+                                SelectableImage:
+                                    id: img4
+                                    source: "assets/qr_code_20210919123459.png"
+                                    color_code: 130, 247, 27
+                                    on_release: 
+                                        app.fit_display_source = img4.source
+                                        app.qr_code_color = img4.color_code
+                                        print("Image clicked")
+                                        img1.selected = False
+                                        img2.selected = False
+                                        img3.selected = False
+                                        img5.selected = False
+                                        img6.selected = False
+                                        img7.selected = False
+                    MDLabel:
+                        text: ""
+                        size_hint_y: None
                         height: dp(300)
 
         MDIconButton:
@@ -441,139 +588,50 @@
             # color: rgba(255, 165, 0)  # Orange color
             # md_bg_color: 1, 1, 0, 1
                     
-        MDCard:
-            
-            padding: [dp(10), 0, dp(10), 0]
-            size_hint: .94 ,None
-            height: "70dp"
+        # MDFillRoundFlatIconButton:
+        AnimatedProgressButton:
+            # on_release:
+                # self.animate()
+        # MDCard:
+            id: gnbtn
+            # icon: "download"
+            # icon_left: True
             pos_hint: {"center_x": 0.5, "center_y": 0.05}
-            # elevation: 10
-            md_bg_color: rgba(102, 76, 229)  #.4, .3, .9, 1
+            # style: "outlined"
+            # font_size: "20sp"
+            size_hint: None, None
+            size: "200dp", "50dp"
+            radius: dp(25)
+            md_bg_color: rgba(102, 76, 229)
+            spinner: gnbtn_spinner
+            label:gnbtn_label
+            # on_release: 
+            #     # self.disabled = True
+            #     self.opacity = 0.4
+            #     self.size = "100dp", "50dp"
+            #     gnbtn_label.text = ""
+            #     gnbtn_spinner.active = True
+            #     gnbtn_spinner.opacity = 0.4
+            MDLabel:
+                id: gnbtn_label
+                text: "Generate QR"
+                halign: "center"
+        MDSpinner:
+            id: gnbtn_spinner
+            size_hint: None, None
+            size: sp(20), sp(20)
+            pos_hint: {"center_x": 0.5, "center_y": 0.05}
+            # x: gnbtn.center_x 
+            # y: gnbtn.center_y
+            active: False
+            # color: rgba(255, 165, 0)  # Orange color
+            # md_bg_color: 1, 1, 0, 1
 
-            ScrollView:
-                do_scroll_x: True
-                do_scroll_y: False
-                size_hint_y: None
-                height: dp(70)
-                # md_bg_color: 1,1,1,0
-
-                MDBoxLayout:
-                    orientation: 'horizontal'
-                    padding: [dp(10), 0, dp(10), 0]
-                    spacing: "10dp"
-                    size_hint_x: None
-                    width: self.minimum_width
-
-                    SelectableImage:
-                        id: img7
-                        source: "assets/color-picker-qr.png"
-                        selected: True
-                        color_code: 0, 0, 0
-                        on_release: 
-                            app.fit_display_source = img7.source
-                            app.qr_code_color = img7.color_code
-                            print("Image clicked")
-                            img1.selected = False
-                            img2.selected = False
-                            img3.selected = False
-                            img4.selected = False
-                            img5.selected = False
-                            img6.selected = False
-
-                    SelectableImage:
-                        id: img6
-                        source: "assets/qr_code_20210919123461.png"
-                        color_code: 0, 0, 0
-                        on_release: 
-                            print("Image clicked")
-                            app.fit_display_source = img6.source
-                            app.qr_code_color = img6.color_code
-                            img1.selected = False
-                            img2.selected = False
-                            img3.selected = False
-                            img4.selected = False
-                            img5.selected = False
-                            img7.selected = False
-
-                    SelectableImage:
-                        id: img5
-                        source: "assets/qr_code_20210919123460.png"
-                        color_code: 238, 252, 40
-                        on_release: 
-                            app.fit_display_source = img5.source
-                            app.qr_code_color = img5.color_code
-                            print("Image clicked")
-                            img1.selected = False
-                            img2.selected = False
-                            img3.selected = False
-                            img4.selected = False
-                            img6.selected = False
-                            img7.selected = False
-
-                    SelectableImage:
-                        id: img1
-                        source: "assets/qr_code_20210919123456.png"
-                        color_code: 217, 37, 217
-                        on_release: 
-                            app.fit_display_source = img1.source
-                            app.qr_code_color = img1.color_code
-                            print("Image clicked" , self.color_code)
-                            img2.selected = False
-                            img3.selected = False
-                            img4.selected = False
-                            img5.selected = False
-                            img6.selected = False
-                            img7.selected = False
-
-                    SelectableImage:
-                        id: img2
-                        source: "assets/qr_code_20210919123457.png"
-                        color_code: 36, 56, 237
-                        on_release: 
-                            app.fit_display_source = img2.source
-                            app.qr_code_color = img2.color_code
-                            print("Image clicked")
-                            img1.selected = False
-                            img3.selected = False
-                            img4.selected = False
-                            img5.selected = False
-                            img6.selected = False
-                            img7.selected = False
-
-                    SelectableImage:
-                        id: img3
-                        source: "assets/qr_code_20210919123458.png"
-                        color_code: 245, 100, 22
-                        on_release: 
-                            app.fit_display_source = img3.source
-                            app.qr_code_color = img3.color_code
-                            print("Image clicked")
-                            img1.selected = False
-                            img2.selected = False
-                            img4.selected = False
-                            img5.selected = False
-                            img6.selected = False
-                            img7.selected = False
-                    
-                    SelectableImage:
-                        id: img4
-                        source: "assets/qr_code_20210919123459.png"
-                        color_code: 130, 247, 27
-                        on_release: 
-                            app.fit_display_source = img4.source
-                            app.qr_code_color = img4.color_code
-                            print("Image clicked")
-                            img1.selected = False
-                            img2.selected = False
-                            img3.selected = False
-                            img5.selected = False
-                            img6.selected = False
-                            img7.selected = False
 
 <SelectableImage@MDCard>:
     color_code: 1, 1, 1
     size_hint: None, None
-    size: "50dp", "50dp"
+    size: "60dp", "60dp"
     pos_hint: {"center_x": 0.5, "center_y": 0.5}
     md_bg_color: 1, 1, 1, .3
     ripple_behavior: True
@@ -583,16 +641,23 @@
     source: ""
 
     canvas.after:
+
+        Color:
+            rgba: (1, 1, 1, 1) if self.selected else (1, 1, 1, 0)  # Blue color for ellipse
+        Ellipse:
+            pos: self.right - 23 , self.top * 0.67
+            size: self.size[0] * 0.4 , self.size[1] * 0.4
+        
         Color:
             rgba: (0, 1, 0, 1) if self.selected else (1, 1, 1, 0)
         Line:
 
-            points: [self.x + 10, self.center_y, self.center_x, self.y + 10, self.right, self.top]
-                
-            width: dp(2)
+            # points: [self.x + 10, self.center_y, self.center_x, self.y + 10, self.right, self.top]
+            points: [self.right -16 , self.top * 0.87, self.right - 12, self.top * 0.8, self.right - 6, self.top * 0.95]
+            width: dp(1)
 
     FitImage:
         source: root.source
         size_hint: None, None
-        size: "50dp", "50dp"
+        size: "60dp", "60dp"
 

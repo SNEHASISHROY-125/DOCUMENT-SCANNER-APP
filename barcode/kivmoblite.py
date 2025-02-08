@@ -47,7 +47,6 @@ class Admob():
         self.visiable = False
         self._test_devices = self.ad["testD"] if "testD" in self.ad.keys() and isinstance(self.ad["testD"], list) else []
         MobileAds.initialize(activity.mActivity)
-        self.new_interstitial()  # Initialize interstitial on object creation
 
 # Banner Ad
 
@@ -133,8 +132,8 @@ class Admob():
 
     @run_on_ui_thread
     def new_interstitial(self):
-        self._interstitial = InterstitialAd()  # No parameters for the constructor
-        self._interstitial.setAdUnitId(self.ad["intId"])  # Set ad unit ID separately
+        self._interstitial = InterstitialAd(activity.mActivity)
+        self._interstitial.setAdUnitId(self.ad["intId"])
         
     @run_on_ui_thread
     def request_interstitial(self, options={}):

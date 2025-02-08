@@ -14,6 +14,8 @@ from kivymd.uix.pickers import MDColorPicker
 from typing import Union
 import threading
 from kivymd.uix.card import MDCard
+from kivymd.uix.label import MDLabel
+from kivy.animation import Animation
 # from kivymd.uix.textfield.textfield #import MDTextField
 
 
@@ -39,6 +41,48 @@ class CustomRecycleView(MDRecycleView):
             } for x in file_list
         ]
 
+# Animated Button
+class AnimatedProgressButton(MDCard):
+    spinner = None
+    label = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.size_hint = (None, None)
+        self.size = (80, 50)
+        self.pos_hint = {"center_x": .5, "center_y": .5}
+        self.radius = [10,]
+        self.md_bg_color = [0, 1, .2, 1]
+        self.text = "Animate"
+        self.text_color = [0, 0, 0, 1]
+        self.on_release = self.animate
+
+    def on_animation_start(self, widget):
+        Clock.schedule_once(lambda x : setattr(self.label,"text",  "") , 0.3)
+    def on_animation_complete(self, widget):
+        print("Animation complete", widget , self.spinner)
+        self.disabled = True
+        self.spinner.opacity = 0.4
+        # self.size = "100dp", "50dp"
+        # gnbtn_label.text = ""
+        self.spinner.active = True
+        self.spinner.opacity = 0.4
+    def animate(self):
+        # Create an animation object
+        animation = Animation(duration=0.5, t='in_quad',size=(100, 50))
+        animation.on_start = self.on_animation_start
+        animation.on_complete = self.on_animation_complete
+        # Start the animation
+        print("Animation started")
+        animation.start(self)
+    def animate_back(self): ...
+        # Create an animation object
+        # animation = Animation(duration=0.5, t='in_quad',size=(80, 50))
+        # animation.on_start = self.on_animation_start
+        # animation.on_complete = self.on_animation_complete
+        # # Start the animation
+        # print("Animation started")
+        # animation.start(self)
 
 class MainApp(MDApp):
     # KV_FILES = [os.path.join(KV_DIR, kv_file) for kv_file in os.listdir(KV_DIR) if kv_file.endswith(".kv")]
@@ -185,6 +229,8 @@ class MainApp(MDApp):
                     ],
                 )
         self.animated_info_dialog.open()
+
+    def animate(self, instance):...
 
     def open_color_picker(self,set_color_to):
         color_picker.set_color_to = set_color_to

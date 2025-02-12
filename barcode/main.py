@@ -30,7 +30,7 @@ from kivy.animation import Animation
 from kivy.uix.modalview import ModalView
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.metrics import dp
-from kivy.utils import platform
+from kivy.utils import platform, get_color_from_hex , get_hex_from_color
 from kivymd.toast import toast as tst
 from kivymd.utils.set_bars_colors import set_bars_colors
 from kivy.config import Config
@@ -95,6 +95,143 @@ class CustomRecycleView(MDRecycleView):
             } for x in file_list
         ]
 
+# Animated Button
+class AnimatedProgressButton(MDCard):
+    spinner = None
+    label = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.size_hint = (None, None)
+        self.size = (80, 50)
+        self.pos_hint = {"center_x": .5, "center_y": .5}
+        self.radius = [10,]
+        self.md_bg_color = [0, 1, .2, 1]
+        self.text = "Animate"
+        self.text_color = [0, 0, 0, 1]
+        self.on_release = self.animate
+
+    def on_animation_start(self, widget):
+        Clock.schedule_once(lambda x : setattr(self.label,"text",  "") , 0.3)
+    def on_animation_complete(self, widget):
+        print("Animation complete", widget , self.spinner)
+        self.disabled = True
+        self.spinner.opacity = 0.4
+        self.spinner.active = True
+
+    def animate(self):
+        # Create an animation object
+        animation = Animation(duration=0.4, t="in_out_circ",size=(dp(100), dp(50)))     # https://kivy.org/doc/stable/api-kivy.animation.html#kivy.animation.AnimationTransition
+        animation.on_start = self.on_animation_start
+        animation.on_complete = self.on_animation_complete
+        # Start the animation
+        print("Animation started")
+        animation.start(self)
+        global ref # reference to self for outside access
+        ref = self
+    def animate_back(self): 
+        # Create an animation object
+        animation = Animation(duration=0.4, t='out_bounce',size=(dp(200), dp(50)))      # https://kivy.org/doc/stable/api-kivy.animation.html#kivy.animation.AnimationTransition
+        # animation.on_start = self.on_animation_start
+        # animation.on_complete = self.on_animation_complete
+        Clock.schedule_once(lambda x: setattr(self.spinner,"active" , False), 0.1)
+        # # Start the animation
+        print("Animation started")
+        animation.start(self)
+        Clock.schedule_once(lambda x : setattr(self.label,"text",  "Generate QR") , 0.3)
+        Clock.schedule_once(lambda x: setattr(self , "disabled" , False), 0.5)
+
+class mMDColorPicker(MDColorPicker):
+
+    def update_color_slider_item_bottom_navigation(self, color: list) -> None:
+        """
+        Updates the color of the slider that sets the transparency value of the
+        selected color and the color of bottom navigation items.
+        """
+        if "select_alpha_channel_widget" in self._current_tab.ids:
+            self._current_tab.ids.select_alpha_channel_widget.ids.slider.color = (
+                color
+            )
+        # Comment out the line that updates the bottom navigation color
+        # self.ids.bottom_navigation.text_color_active = color              # bug fix
+
+import qrcode
+from kivy.uix.widget import Widget
+from kivy.graphics import Color, Rectangle
+from kivy.properties import ListProperty
+from kivy.metrics import dp
+
+class QRWidget(Widget):
+    light_color = ListProperty([1, 1, 1, 1])  # Default light color (white)
+    dark_color = ListProperty([0, 0, 0, 1])   # Default dark color (black)
+    data = StringProperty('fudemy.me')
+
+    def __init__(self,  **kwargs):
+        super().__init__(**kwargs)
+        self.matrix = self.generate_matrix(self.data)
+        self.bind(size=self.update_canvas)
+        self.bind(pos=self.update_canvas)
+        self.bind(light_color=self.update_canvas)
+        self.bind(dark_color=self.update_canvas)
+
+    def generate_matrix(self, data):
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(data)
+        qr.make(fit=True)
+        return qr.get_matrix()
+
+    def update_canvas(self, *args):
+        self.canvas.clear()
+        if not self.matrix:
+            return
+
+        rows = len(self.matrix)
+        cols = len(self.matrix[0]) if rows > 0 else 0
+        if cols == 0:
+            return
+
+        # Calculate module size while maintaining aspect ratio
+        widget_ratio = self.width / self.height
+        qr_ratio = cols / rows
+
+        if widget_ratio > qr_ratio:
+            module_height = self.height / rows
+            module_width = module_height
+        else:
+            module_width = self.width / cols
+            module_height = module_width
+
+        # Center the QR code in the widget
+        x_offset = self.x + (self.width - (cols * module_width)) / 2
+        y_offset = self.y + (self.height - (rows * module_height)) / 2
+
+        with self.canvas:
+            # Light background
+            Color(*self.light_color)
+            Rectangle(pos=self.pos, size=self.size)
+
+            # Dark modules
+            Color(*self.dark_color)
+            for i, row in enumerate(self.matrix):
+                for j, module in enumerate(row):
+                    if module:
+                        x = x_offset + j * module_width
+                        y = y_offset + (rows - i - 1) * module_height
+                        Rectangle(
+                            pos=(x, y),
+                            size=(module_width, module_height)
+                        )
+
+    def set_light_color(self, color):
+        self.light_color = color
+
+    def set_dark_color(self, color):
+        self.dark_color = color
 
 class MyApp(MDApp):
 
@@ -105,6 +242,7 @@ class MyApp(MDApp):
     del_dialog = None
     animated_info_dialog = None
     micro_info_dialog = None
+    permissions_grant_dialog = None
     file_to_delete = StringProperty("")
     show_line = BooleanProperty(False)
     fit_display_source = StringProperty("assets/color-picker-qr.png")
@@ -119,6 +257,8 @@ class MyApp(MDApp):
     #
     icon_brush_color = ListProperty([1,.4,.2, 1])
     footer_brush_color = ListProperty([1,.4,.2, 1])
+    qr_bg_dark_color = ListProperty([0, 0, 0, 1])
+    qr_bg_light_color = ListProperty([1, 1, 1, 1])
     qr_code_data = StringProperty("fudemy.me")
     qr_code_description = StringProperty("fudemy.me")
     qr_code_icon = StringProperty("qrcode")
@@ -130,8 +270,31 @@ class MyApp(MDApp):
         super().__init__(**kwargs)
         self.title = "Barcode"
         self.theme_cls.primary_palette = "Blue"
-        self.theme_cls.primary_hue = "500"
         self.theme_cls.theme_style = 'Dark'
+        # Override the primary color directly
+        # Define the custom color palette
+        # custom_palette = {
+        #     "50": "E0F2F1",
+        #     "100": "B2DFDB",
+        #     "200": "80CBC4",
+        #     "300": "4DB6AC",
+        #     "400": "26A69A",
+        #     "500": "00796B",  # Replace with your custom color
+        #     "600": "00897B",
+        #     "700": "00796B",
+        #     "800": "00695C",
+        #     "900": "004D40",
+        #     "A100": get_hex_from_color([0.15, 0.35, 0.8, 0.35]),
+        #     "A200": "64FFDA",
+        #     "A400": "1DE9B6",
+        #     "A700": "00BFA5",
+        # }
+
+        # Add the custom palette to the theme manager
+        print('jfjjfjf: ',self.theme_cls.primary_hue)
+        # self.theme_cls.theme_bg_color["Custom"] = custom_palette
+        self.theme_cls.primary_hue = "A200"
+
         #
         for root, dirs, files in os.walk('./src'):
             for file in files:
@@ -242,6 +405,8 @@ class MyApp(MDApp):
     def on_stop(self):
         pass
 
+    def Abtn_reverse(self):
+        ref.animate_back()
     # def on_pre_enter(self, *args):
     #     # bind back button
     #     self.bind(on_keyboard=self.quit_app)
@@ -282,7 +447,7 @@ class MyApp(MDApp):
         #
         # hotreload ->
         global color_picker
-        color_picker = MDColorPicker(size_hint=(0.45, 0.85),type_color='RGBA')
+        color_picker = mMDColorPicker(size_hint=(0.45, 0.85),type_color='RGBA')
         color_picker.set_color_to = "icon_brush_color"
         # color_picker.open()
         color_picker.bind(
@@ -290,10 +455,42 @@ class MyApp(MDApp):
             on_release=self.get_selected_color,
         ) 
         # #
-        self.web_sync_btn = self.root.get_screen('advanced_qr').ids.web_sync
+        # self.web_sync_btn = self.root.get_screen('advanced_qr').ids.web_sync
         self.file_picker_card = self.root.get_screen('advanced_qr').ids.file_picker_card
         self.generate_qr_btn = self.root.get_screen('advanced_qr').ids.generate_qr_btn
     
+    def show_permissions_grant_dialog(self):
+        if not self.permissions_grant_dialog:
+            def req_():
+                if platform == 'android':
+                    self.permissions_grant_dialog.dismiss()
+                    #
+                    from android.permissions import request_permissions, Permission , check_permission
+                    if not check_permission(Permission.READ_EXTERNAL_STORAGE) or not check_permission(Permission.WRITE_EXTERNAL_STORAGE):
+                        request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
+
+            self.permissions_grant_dialog = MDDialog(
+                title="Please allow Permissions",
+                # text="Please Grant Permissions to access your files",
+                type="custom",
+                size_hint=(0.8, 0.4),
+                auto_dismiss=False,
+                # width_offset=dp(30),
+                content_cls=Builder.load_file('kv/grant_permissions.kv'),
+                buttons=[
+                    MDFlatButton(
+                        text="CANCEL",
+                        on_release=lambda x: self.permissions_grant_dialog.dismiss()
+                    ),
+                    MDFlatButton(
+                        text="GRANT",
+                        on_release=lambda x: req_()
+                    ),
+                ],
+            )
+            self.permissions_grant_dialog.children[0].children[-1].halign="center"
+        self.permissions_grant_dialog.open()
+
     def show_info_micro(self):
         if not self.micro_info_dialog:
             self.micro_info_dialog = MDDialog(
@@ -315,21 +512,42 @@ class MyApp(MDApp):
             self.micro_info_dialog.children[0].children[-1].text_color = [130/255, 247/255, 27/255, 0.8]  # Red color
         self.micro_info_dialog.open()
         
+    def _add_infoA(self):
+        self.animated_info_dialog = MDDialog(
+            title="",
+            type="custom",
+            size_hint= (0.8, 0.4),
+            # width_offset=dp(30),
+            content_cls=Builder.load_file('kv/animated_qr.kv'),
+            buttons=[
+                MDFlatButton(
+                    text="OK",
+                    on_release=lambda x: self.animated_info_dialog.dismiss()
+                ),
+            ],
+        )
+        self.animated_info_dialog.open()
+    def _ww(self):
+        Clock.schedule_once(lambda dt: self._add_infoA(), 0.1)
     def show_info_animated(self):
         if not self.animated_info_dialog:
-            self.animated_info_dialog = MDDialog(
-                    title="",
-                    type="custom",
-                    size_hint= (0.8, 0.4),
-                    # width_offset=dp(30),
-                    content_cls=Builder.load_file('kv/animated_qr.kv'),
-                    buttons=[
-                        MDFlatButton(
-                            text="OK",
-                            on_release=lambda x: self.animated_info_dialog.dismiss()
-                        ),
-                    ],
-                )
+            Thread(target=self._ww).start()
+            return
+            # self.animated_info_dialog = MDDialog(
+            #         title="",
+            #         type="custom",
+            #         size_hint= (0.8, 0.4),
+            #         # width_offset=dp(30),
+            #         content_cls=Builder.load_file('kv/animated_qr.kv'),
+            #         buttons=[
+            #             MDFlatButton(
+            #                 text="OK",
+            #                 on_release=lambda x: self.animated_info_dialog.dismiss()
+            #             ),
+            #         ],
+            #     )
+            # Clock.schedule_once(lambda dt: setattr(self,"animated_info_dialog", d),0.1)
+        # self.animated_info_dialog = d
         self.animated_info_dialog.open()
 
     def refresh_files(self) -> list:
@@ -389,13 +607,17 @@ class MyApp(MDApp):
         def get_time() -> str:
             return datetime.now().strftime("%Y%m%d%H%M%S")
         # open _modal
+        # self.show_permissions_grant_dialog()
+        if platform == 'android':
+            from android.permissions import request_permissions, Permission , check_permission
+            if not check_permission(Permission.READ_EXTERNAL_STORAGE) or not check_permission(Permission.WRITE_EXTERNAL_STORAGE):
+                # request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
+                Clock.schedule_once(lambda dt: self.toast("Please Grant Pemitions\nto share a file"),0.3)
+                self.show_permissions_grant_dialog()
+                return
         _modal.open()
         def _share():
             try:
-                if platform == 'android':
-                    from android.permissions import request_permissions, Permission , check_permission
-                    if not check_permission(Permission.READ_EXTERNAL_STORAGE) or not check_permission(Permission.WRITE_EXTERNAL_STORAGE):
-                        request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
                 ## create a file in Private storage
                 # new_file_name = file
@@ -662,7 +884,11 @@ class MyApp(MDApp):
             _app.icon_brush_color = _
         elif instance_color_picker.set_color_to == "footer_brush_color":
             _app.footer_brush_color = _
-            print(_app.icon_brush_color)
+            # print(_app.icon_brush_color)
+        elif instance_color_picker.set_color_to == "qr_bg_dark_color":
+            _app.qr_bg_dark_color = _
+        elif instance_color_picker.set_color_to == "qr_bg_light_color":
+            _app.qr_bg_light_color = _
         # dissmiss color picker
         instance_color_picker.dismiss()
         
@@ -696,8 +922,8 @@ class MyApp(MDApp):
                 self.qr_code_description,
                 output='',
                 scale=10,
-                light=(255, 255, 255),
-                dark=tuple(self.qr_code_color),
+                light=  self.qr_bg_light_color, #(255, 255, 255),
+                dark= self.qr_bg_dark_color , #tuple(self.qr_code_color),
                 border=1,
                 icon_name=self.qr_code_icon,
                 info_text_color=self.get_rgb(self.footer_brush_color),

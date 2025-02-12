@@ -63,26 +63,107 @@ class AnimatedProgressButton(MDCard):
         print("Animation complete", widget , self.spinner)
         self.disabled = True
         self.spinner.opacity = 0.4
-        # self.size = "100dp", "50dp"
-        # gnbtn_label.text = ""
         self.spinner.active = True
-        self.spinner.opacity = 0.4
+
     def animate(self):
         # Create an animation object
-        animation = Animation(duration=0.5, t='in_quad',size=(100, 50))
+        animation = Animation(duration=0.5, t='in_quad',size=(dp(100), dp(50)))
         animation.on_start = self.on_animation_start
         animation.on_complete = self.on_animation_complete
         # Start the animation
         print("Animation started")
         animation.start(self)
-    def animate_back(self): ...
+        global ref # reference to self for outside access
+        ref = self
+    def animate_back(self): 
         # Create an animation object
-        # animation = Animation(duration=0.5, t='in_quad',size=(80, 50))
+        animation = Animation(duration=0.4, t='in_quad',size=(dp(200), dp(50)))
         # animation.on_start = self.on_animation_start
         # animation.on_complete = self.on_animation_complete
+        Clock.schedule_once(lambda x: setattr(self.spinner,"active" , False), 0.1)
         # # Start the animation
-        # print("Animation started")
-        # animation.start(self)
+        print("Animation started")
+        animation.start(self)
+        Clock.schedule_once(lambda x : setattr(self.label,"text",  "Generate QR") , 0.3)
+        Clock.schedule_once(lambda x: setattr(self , "disabled" , False), 0.5)
+
+import qrcode
+from kivy.uix.widget import Widget
+from kivy.graphics import Color, Rectangle
+from kivy.properties import ListProperty
+from kivy.metrics import dp
+
+class QRWidget(Widget):
+    light_color = ListProperty([1, 1, 1, 1])  # Default light color (white)
+    dark_color = ListProperty([0, 0, 0, 1])   # Default dark color (black)
+    data = StringProperty('fudemy.me')
+
+    def __init__(self,  **kwargs):
+        super().__init__(**kwargs)
+        self.matrix = self.generate_matrix(self.data)
+        self.bind(size=self.update_canvas)
+        self.bind(pos=self.update_canvas)
+        self.bind(light_color=self.update_canvas)
+        self.bind(dark_color=self.update_canvas)
+
+    def generate_matrix(self, data):
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(data)
+        qr.make(fit=True)
+        return qr.get_matrix()
+
+    def update_canvas(self, *args):
+        self.canvas.clear()
+        if not self.matrix:
+            return
+
+        rows = len(self.matrix)
+        cols = len(self.matrix[0]) if rows > 0 else 0
+        if cols == 0:
+            return
+
+        # Calculate module size while maintaining aspect ratio
+        widget_ratio = self.width / self.height
+        qr_ratio = cols / rows
+
+        if widget_ratio > qr_ratio:
+            module_height = self.height / rows
+            module_width = module_height
+        else:
+            module_width = self.width / cols
+            module_height = module_width
+
+        # Center the QR code in the widget
+        x_offset = self.x + (self.width - (cols * module_width)) / 2
+        y_offset = self.y + (self.height - (rows * module_height)) / 2
+
+        with self.canvas:
+            # Light background
+            Color(*self.light_color)
+            Rectangle(pos=self.pos, size=self.size)
+
+            # Dark modules
+            Color(*self.dark_color)
+            for i, row in enumerate(self.matrix):
+                for j, module in enumerate(row):
+                    if module:
+                        x = x_offset + j * module_width
+                        y = y_offset + (rows - i - 1) * module_height
+                        Rectangle(
+                            pos=(x, y),
+                            size=(module_width, module_height)
+                        )
+
+    def set_light_color(self, color):
+        self.light_color = color
+
+    def set_dark_color(self, color):
+        self.dark_color = color
 
 class MainApp(MDApp):
     # KV_FILES = [os.path.join(KV_DIR, kv_file) for kv_file in os.listdir(KV_DIR) if kv_file.endswith(".kv")]
@@ -98,6 +179,8 @@ class MainApp(MDApp):
     #
     icon_brush_color = ListProperty([0,1,.2, 1])
     footer_brush_color = ListProperty([0,1,.2, 1])
+    qr_bg_dark_color = ListProperty([0,1,.2, 1])
+    qr_bg_light_color = ListProperty([0,1,.2, 1])
     qr_code_data = StringProperty("fudemy.me")
     qr_code_description = StringProperty("fudemy.me")
     qr_code_icon = StringProperty("qrcode")
@@ -110,6 +193,8 @@ class MainApp(MDApp):
     file_picker_card  = ... # instance of MDCard
     tempUrlFile = StringProperty()
     tempUrlFile_ext = StringProperty()
+
+    qr = None
 
     def build_app(self):  # hotreload-build
     # def build(self):
@@ -130,7 +215,14 @@ class MainApp(MDApp):
                 file_list.append(os.path.join(root, file))
 
         print(file_list)
+        # self.qr = QRWidget("fudemy.me")
         return Factory.AdvancedQRScreen()
+    def on_start(self):
+        global Abtn
+        Abtn = AnimatedProgressButton()
+        
+    def btn_reverse(self):
+        ref.animate_back()
     def generate_qr_code_icon(self):
         import time as t
         def _():

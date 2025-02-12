@@ -39,6 +39,14 @@
                 
         on_touch_down: print(fit.x, fit.y)  
 
+    QRWidget:
+        id: qr_widget
+        size_hint: None, None
+        size: "200dp", "200dp"
+        pos_hint: {"center_x": 0.5, "center_y": 0.757}
+        dark_color: app.qr_bg_dark_color
+        light_color: app.qr_bg_light_color
+    
     # FitImage:
     #     source: "favicons/facebook.png"
     #     size_hint: None, None
@@ -55,7 +63,7 @@
 
         canvas.before:
             Color:
-                rgba: 1, 1, 1, .96
+                rgba: app.qr_bg_light_color  #1, 1, 1, .96
             Rectangle:
                 size: self.texture_size[0] * 0.9, self.texture_size[1] * 0.9
                 pos: self.pos
@@ -146,13 +154,100 @@
                             max_text_length: 150
                             # required: False
 
+                    MDLabel:
+                        text: " "
+                        size_hint_y: None
+                        height: dp(30)
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint_x: 0.97
+                        size_hint_y: None
+                        height: self.minimum_height
+                        # spacing: "10dp"
+                        pos_hint: {'center_x': 0.5,'center_y': 0.5}
+                       
+                        # md_bg_color: 0, .3, .4, 1
+
+                        # MDLabel:
+                        #     text: ""
+                        #     size_hint_x: 0.013
+                        #     # width: dp(80)
+                        Image:
+                            source: "assets/qr_dark-light.png"
+                            size_hint : None, None
+                            weight: "70dp"
+                            height: "70dp"
+                            # pos_hint: {"center_x": 0.1}
+                        
+                        MDLabel:
+                            text: ""
+                            size_hint_x: 0.4
+                            # width: dp(80)
+
+                        MDLabel:
+                            text: "Dark"
+                            font_size: "15sp"
+                            theme_text_color: "Custom"
+                            text_color: app.qr_bg_dark_color
+                            size_hint_x: 1
+                            # width: dp(50)
+                            halign: "center"
+                            # md_bg_color: 0, .1, .4, 1
+
+                        # MDLabel:
+                        #     text: ""
+                        #     size_hint_x: 0.23
+                        #     halign: "left"
+                        MDIconButton:
+                            id: bg_dark_brush
+                            color: 0,1, 0, 1
+                            icon: "brush"
+                            on_release: app.open_color_picker(set_color_to="qr_bg_dark_color")
+                            disabled: False
+                            pos_hint: {"center_y": 0.5}
+                            canvas.after:
+                                Color:
+                                    rgba: app.qr_bg_dark_color
+                                Ellipse:
+                                    pos: bg_dark_brush.right - bg_dark_brush.size[0] * 0.4, bg_dark_brush.center_y - bg_dark_brush.size[1] * 0.2
+                                    size: bg_dark_brush.size[0] * 0.2 ,bg_dark_brush.size[1] * 0.2
+
+                        MDLabel:
+                            text: ""
+                            size_hint_x: 0.2
+                            # width: dp(20)
+                            halign: "left"
+                        MDLabel:
+                            text: "Light"
+                            font_size: "15sp"
+                            theme_text_color: "Custom"
+                            text_color: app.qr_bg_light_color
+                            size_hint_x: 1
+                            # width: dp(50)
+                            halign: "center"
+                            # md_bg_color: 0, .1, .4, 1
+
+                        MDIconButton:
+                            id: bg_light_brush
+                            color: 0,1, 0, 1
+                            icon: "brush"
+                            on_release: app.open_color_picker(set_color_to="qr_bg_light_color")
+                            disabled: False
+                            pos_hint: {"center_y": 0.5}
+                            canvas.after:
+                                Color:
+                                    rgba: app.qr_bg_light_color
+                                Ellipse:
+                                    pos: bg_light_brush.right - bg_light_brush.size[0] * 0.4, bg_light_brush.center_y - bg_light_brush.size[1] * 0.2
+                                    size: bg_light_brush.size[0] * 0.2 ,bg_light_brush.size[1] * 0.2
+
                     MDBoxLayout:
                         orientation: 'horizontal'
                         size_hint_x: 0.97
                         # size_hint_y: None
                         # height: self.minimum_height
                         pos_hint: {'center_x': 0.5,'center_y': 0.5}
-                        padding: [0, 20, 0, 0]
+                        padding: [0, 0, 0, 0]
                         adaptive_height: True  # This ensures dynamic height adjustment
                        
                         md_bg_color: 0, 1, .4, 0
@@ -173,6 +268,9 @@
                             size_hint_x: 0.2
                             # pos_hint: {"center_y": 0.33} 
                             on_active: 
+                                qr_widget.opacity = 0.0 if  Awesome_switch.active else 1.0
+                                bg_dark_brush.disabled =  Awesome_switch.active
+                                bg_light_brush.disabled =  Awesome_switch.active
                                 Micro_switch.active = False 
                                 Micro_switch.disabled =  Awesome_switch.active
 
@@ -229,10 +327,10 @@
                         height: self.minimum_height
                         pos_hint: {'center_x': 0.5,'center_y': 0.5}
                         padding: [0, 20, 0, 0]
-                        spacing: "10dp"
+                        spacing: "20dp"
                         md_bg_color: 0, 1, .4, 0
                         MDLabel:
-                            text: "Set QR code Background"
+                            text: "Set QR code Background\nPick a file"
                             font_size: "15sp"
                             bold: True
                             theme_text_color: "Custom"
@@ -566,11 +664,12 @@
             disabled: app.gen_btn
             opacity: 0.4 if generate_qr_btn_spinner.active else 1.0
             on_release: 
-                app.qr_code_data = qr_data_field.text
-                app.qr_code_icon = icon_field.text
-                app.qr_code_description = footer_field.text
-                app.qr_code_micro = Micro_switch.active
-                app.generate_qr_code_icon() if not Awesome_switch.active else app.generate_animated_qr_code()
+                app.Abtn_reverse()
+                # app.qr_code_data = qr_data_field.text
+                # app.qr_code_icon = icon_field.text
+                # app.qr_code_description = footer_field.text
+                # app.qr_code_micro = Micro_switch.active
+                # app.generate_qr_code_icon() if not Awesome_switch.active else app.generate_animated_qr_code()
             canvas.before:
                 Color:
                     rgba: 18/255, 18/255, 18/255,1 #app.theme_cls.bg_dark

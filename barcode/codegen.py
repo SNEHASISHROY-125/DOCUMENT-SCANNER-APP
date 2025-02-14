@@ -294,11 +294,11 @@ def generate_custom_qr_icon(data, description='', output='', scale=10, light=(25
             if icon_name and icon_name in md_icons:
                 icon_char = md_icons[icon_name]
                 icon_font_path = "fonts/materialdesignicons-webfont.ttf"  # Path to the Material Design Icons font file
-                icon_font = ImageFont.truetype(icon_font_path, size=50)  # Adjust size as needed
                 icon_size = min(width, height) // 5  # Icon size is 1/4th of the QR code size
+                icon_font = ImageFont.truetype(icon_font_path, size=icon_size)  # Adjust size as needed
 
                 # Create an image for the icon with a white background
-                icon_img = Image.new("RGBA", (icon_size, icon_size), (255, 255, 255, 231))
+                icon_img = Image.new("RGBA", (icon_size, icon_size), (dark[0],dark[1],dark[2],255,)) # icon back-ground color
                 draw_icon = ImageDraw.Draw(icon_img)
                 text_bbox = draw_icon.textbbox((0, 0), icon_char, font=icon_font)
                 text_width = text_bbox[2] - text_bbox[0]

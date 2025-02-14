@@ -167,7 +167,7 @@ class QRWidget(Widget):
 
 class MainApp(MDApp):
     # KV_FILES = [os.path.join(KV_DIR, kv_file) for kv_file in os.listdir(KV_DIR) if kv_file.endswith(".kv")]
-    KV_FILES = [[os.path.join(KV_DIR, "app.kv"),os.path.join(KV_DIR, "main.kv"),os.path.join('quick_create.kv'),os.path.join('CustomCard.kv')][1]]
+    KV_FILES = [[os.path.join(KV_DIR, "app.kv"),os.path.join(KV_DIR, "main.kv"),os.path.join('quick_create.kv'),os.path.join('CustomCard.kv')][0]]
     DEBUG = True
 
     # app-internals
@@ -216,7 +216,7 @@ class MainApp(MDApp):
 
         print(file_list)
         # self.qr = QRWidget("fudemy.me")
-        return Factory.AdvancedQRScreen()
+        return Factory.HomeScreen()#AdvancedQRScreen()
     def on_start(self):
         global Abtn
         Abtn = AnimatedProgressButton()

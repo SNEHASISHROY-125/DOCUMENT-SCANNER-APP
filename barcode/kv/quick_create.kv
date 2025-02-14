@@ -39,9 +39,10 @@ MDBoxLayout:
 
 			on_release:
 				app.root.transition.direction = 'left'
-				app.root.current = 'advanced_qr'
+				# app.root.current = 'advanced_qr'
+				app._transition_to("advanced_qr",t=0.3)
 				app.dialog.dismiss()
-				app.theme_cls.primary_palette = "Blue" if app.root.current=='advanced_qr' else "Teal"
+				# app.theme_cls.primary_palette = "Blue" if app.root.current=='advanced_qr' else "Teal"
 				# show ads
 				app._show_baner()
 				# app.on_switch_active(self, self.active)

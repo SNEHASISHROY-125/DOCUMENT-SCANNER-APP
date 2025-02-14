@@ -37,6 +37,9 @@ from kivy.config import Config
 Config.set('kivy', 'pause_on_minimize', '1')
 Window.softinput_mode = "below_target"
 
+# test
+if platform != 'android':
+    Window.size = (360, 1080) 
 # ADs
 if platform == 'android':
     from kivmoblite import Admob
@@ -723,11 +726,12 @@ class MyApp(MDApp):
         threading.Thread(target=_,args=(url,)).start()
 
     def generate_animated_qr_code(self):
-        _modal.open()
+        # _modal.open()
         # check if code is valid
         if not self.qr_code_data:
-            self.toast("Barcode data cannot be empty \nPlease enter something")
+            self.toast("QR code data cannot be empty \nPlease enter something")
             Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
+            Clock.schedule_once(lambda dt : self.Abtn_reverse(), 1)
             return
         def _gen():
             # create qr first
@@ -738,6 +742,7 @@ class MyApp(MDApp):
                     Clock.schedule_once(lambda  dt :self.toast("QR code generated Sucessfuly"),.2)
                     Clock.schedule_once(lambda x: setattr(self,"fit_display_source" , _), 0.1)
                     Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
+                    Clock.schedule_once(lambda dt : self.Abtn_reverse(), 1)
                     # refresh the files
                     self.root.get_screen('home').ids.rv.data.insert(
                         0,
@@ -750,12 +755,15 @@ class MyApp(MDApp):
                 else:
                     print('Could not generate QR\ngot not qr file from callback see logs.')
                     Clock.schedule_once(lambda dt: self.toast("Something went wrong ! ❌"),.2)
+                    Clock.schedule_once(lambda dt : self.Abtn_reverse(), 1)
             except Exception as e:
                 print('The file is not a valid image.\n' "error" , e)
                 Clock.schedule_once(lambda dt: self.toast("Something went wrong ! ❌"),.2)
                 Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
+                Clock.schedule_once(lambda dt : self.Abtn_reverse(), 1)
             finally:
                 Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
+                Clock.schedule_once(lambda dt : self.Abtn_reverse(), 1)
         Thread(target=_gen).start()
         print(self.tempUrlFile,os.path.isfile(self.tempUrlFile))
 
@@ -902,17 +910,20 @@ class MyApp(MDApp):
 
     # def on_select_color(self, instance_gradient_tab, color: list) -> None:
     #     '''Called when a gradient image is clicked.'''
-
+    def _transition_to(self, screen_name,t):
+        Clock.schedule_once(lambda x: setattr(self.root,"current" , screen_name),t)
     def generate_qr_code_icon(self):
         # check micro and data len <11
         if not self.qr_code_data:
             self.toast("QR code data cannot be empty")
+            Clock.schedule_once(lambda dt : self.Abtn_reverse(), 1)
             return
         elif self.qr_code_micro and len(self.qr_code_data) > 11:
             print(self.qr_code_data)
             self.toast("Micro QR code can only contain 10 characters")
+            Clock.schedule_once(lambda dt : self.Abtn_reverse(), 1)
             return
-        _modal.open()
+        # _modal.open()
         def _gen():
             # import  test2 as t2# generate_custom_qr_icon
             import time
@@ -922,8 +933,8 @@ class MyApp(MDApp):
                 self.qr_code_description,
                 output='',
                 scale=10,
-                light=  self.qr_bg_light_color, #(255, 255, 255),
-                dark= self.qr_bg_dark_color , #tuple(self.qr_code_color),
+                light= self.get_rgb(self.qr_bg_light_color), #(255, 255, 255),
+                dark= self.get_rgb(self.qr_bg_dark_color) , #tuple(self.qr_code_color),
                 border=1,
                 icon_name=self.qr_code_icon,
                 info_text_color=self.get_rgb(self.footer_brush_color),
@@ -934,11 +945,13 @@ class MyApp(MDApp):
             if not _:
                 Clock.schedule_once(lambda dt: self.toast("❌ Couldn't generate QR code"),0.2)
                 Clock.schedule_once(lambda dt: _modal.dismiss(),0.2)
+                Clock.schedule_once(lambda dt : self.Abtn_reverse(), 1)
                 return
             print("QR Code Generated",'micro',self.qr_code_micro)
             # self.fit_display_source = "qr_code.png"
             Clock.schedule_once(lambda dt : _modal.dismiss() ,0.1)
             Clock.schedule_once(lambda dt: self.toast("QRcode generated Sucessfuly"),0.2)
+            Clock.schedule_once(lambda dt : self.Abtn_reverse(), 1)
              # refresh the files
             self.root.get_screen('home').ids.rv.data.insert(
                 0,

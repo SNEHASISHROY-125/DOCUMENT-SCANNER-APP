@@ -17,7 +17,8 @@ from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
 from kivy.animation import Animation
 # from kivymd.uix.textfield.textfield #import MDTextField
-
+from kivy.core import window    
+window.Window.size = (360, 640)
 
 KV_DIR = os.path.join(os.path.dirname(__file__), "kv")
 
@@ -167,7 +168,7 @@ class QRWidget(Widget):
 
 class MainApp(MDApp):
     # KV_FILES = [os.path.join(KV_DIR, kv_file) for kv_file in os.listdir(KV_DIR) if kv_file.endswith(".kv")]
-    KV_FILES = [[os.path.join(KV_DIR, "app.kv"),os.path.join(KV_DIR, "main.kv"),os.path.join('quick_create.kv'),os.path.join('CustomCard.kv')][0]]
+    KV_FILES = [[os.path.join(KV_DIR, "app.kv"),os.path.join(KV_DIR, "main.kv"),os.path.join('quick_create.kv'),os.path.join('CustomCard.kv')][1]]
     DEBUG = True
 
     # app-internals
@@ -216,7 +217,7 @@ class MainApp(MDApp):
 
         print(file_list)
         # self.qr = QRWidget("fudemy.me")
-        return Factory.HomeScreen()#AdvancedQRScreen()
+        return Factory.AdvancedQRScreen()
     def on_start(self):
         global Abtn
         Abtn = AnimatedProgressButton()

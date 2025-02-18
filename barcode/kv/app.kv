@@ -35,7 +35,7 @@ ScreenManager:
             MDBoxLayout:
                 id : top_app_bar
                 orientation: 'horizontal'
-                padding: [0,0,10,0]
+                padding: [dp(10),0,dp(10),0]
                 pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                 MDLabel:
                     id : top_app_bar_label
@@ -49,13 +49,13 @@ ScreenManager:
                 MDCard:
                     size_hint: None, None
                     size: dp(100), dp(50)
-                    radius: [25, 25, 25, 25]
+                    radius: dp(25) #[25, 25, 25, 25]
                     md_bg_color: 0,0,0,.1
                     pos_hint: {'center_y': 0.5}
                     on_release: print('clicked rewards')
                     MDBoxLayout:
                         orientation: 'horizontal'
-                        padding: dp(5)
+                        padding: dp(2)
                         # spacing: dp(5)
                         MDIconButton:
                             # id : top_app_bar_btn_left
@@ -88,7 +88,7 @@ ScreenManager:
                 text: "home"
                 icon: "home"
                 badge_icon: ""
-                icon_color: [0.15, 0.35, 0.8, 0.35]
+                icon_color: [0.15, 0.35, 0.8, 0.97]
                 
                 CustomRecycleView:
                     id: rv

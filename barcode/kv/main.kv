@@ -5,6 +5,12 @@
 
 <AdvancedQRScreen@Screen>:
     name: 'advanced_qr'
+    canvas.before:
+        Color:
+            rgba: app.theme_cls.bg_dark
+        Rectangle:
+            size: self.size
+            pos: self.pos
 
     MDIconButton:
         icon: "chevron-left"
@@ -22,6 +28,7 @@
         source: app.fit_display_source
         size_hint: None, None
         size: "200dp", "200dp"
+        # size: root.size[1] * 0.3, root.size[1] * 0.3
         pos_hint: {"center_x": 0.5, "center_y": 0.757}
         
         canvas.after:
@@ -113,7 +120,7 @@
             #         width: dp(2)
             padding: "10dp"
             size_hint: .94 ,None
-            height: "350dp"
+            height: root.size[1] * 0.48  #dp(350)
             pos_hint: {"center_x": 0.5, "center_y": 0.33}
             # elevation: 10
             md_bg_color: rgba(102, 76, 229)  #.4, .3, .9, 1
@@ -121,7 +128,7 @@
             ScrollView:
                 do_scroll_y: True
                 size_hint_y: None
-                height: dp(330)
+                height: root.size[1] * 0.46  # dp(330)
                 bar_color: 0, 0, 0, 0
                 bar_width: dp(0)
                 md_bg_color: 1,1,1,0
@@ -162,12 +169,12 @@
                     MDBoxLayout:
                         orientation: 'horizontal'
                         size_hint_x: 0.97
-                        size_hint_y: None
-                        height: self.minimum_height
+                        # size_hint_y: None
+                        # height: self.minimum_height
                         # spacing: "10dp"
                         pos_hint: {'center_x': 0.5,'center_y': 0.5}
                        
-                        # md_bg_color: 0, .3, .4, 1
+                        # md_bg_color: 0, 1, .4, 1
 
                         # MDLabel:
                         #     text: ""
@@ -176,9 +183,9 @@
                         Image:
                             source: "assets/qr_dark-light.png"
                             size_hint : None, None
-                            weight: "70dp"
-                            height: "70dp"
-                            # pos_hint: {"center_x": 0.1}
+                            weight: "50dp"
+                            height: "50dp"
+                            pos_hint: {"center_y": 0.1}
                         
                         MDLabel:
                             text: ""
@@ -698,7 +705,7 @@
                 # app.generate_qr_code_icon() if not Awesome_switch.active else app.generate_animated_qr_code()
             canvas.before:
                 Color:
-                    rgba: 18/255, 18/255, 18/255,1 #app.theme_cls.bg_dark
+                    rgba: app.theme_cls.bg_dark  #18/255, 18/255, 18/255,1 #app.theme_cls.bg_dark
                 Line:
                     circle: (self.center_x, self.center_y, self.width * 0.6)
                     width: dp(4.5)
@@ -775,7 +782,7 @@
         Color:
             rgba: (1, 1, 1, 1) if self.selected else (1, 1, 1, 0)  # Blue color for ellipse
         Ellipse:
-            pos: self.right - 23 , self.top * 0.67
+            pos: self.right - dp(23) , self.top * 0.67
             size: self.size[0] * 0.4 , self.size[1] * 0.4
         
         Color:
@@ -783,7 +790,7 @@
         Line:
 
             # points: [self.x + 10, self.center_y, self.center_x, self.y + 10, self.right, self.top]
-            points: [self.right -16 , self.top * 0.87, self.right - 12, self.top * 0.8, self.right - 6, self.top * 0.95]
+            points: [self.right -dp(16) , self.top * 0.87, self.right - dp(12), self.top * 0.8, self.right - dp(6), self.top * 0.95]
             width: dp(1)
 
     FitImage:

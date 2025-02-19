@@ -366,6 +366,7 @@
                             font_size: "15sp"
                             bold: True
                             theme_text_color: "Custom"
+                            opacity: 1.0 if Awesome_switch.active else 0.6
                             text_color: app.theme_cls.primary_color if Awesome_switch.active else [1, 1, 1, 1]
                             size_hint_x: 1
                             halign: "center"
@@ -379,6 +380,7 @@
                             disabled: True if not Awesome_switch.active else False
                             on_release: app.Pick_A_File()
                             AsyncImage:
+                                opacity: 1.0 if Awesome_switch.active else 0.6
                                 source: "assets/upload.png"
 
                     MDBoxLayout:

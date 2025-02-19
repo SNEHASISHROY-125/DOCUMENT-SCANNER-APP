@@ -60,7 +60,7 @@ ScreenManager:
                         MDIconButton:
                             # id : top_app_bar_btn_left
                             icon: "assets/coin.png"
-                            # font_size: '30sp'
+                            # icon_size: '25sp'
                             pos_hint: {'center_y': 0.5}
                             disabled: True
                             # size_hint_x: 0.5
@@ -92,12 +92,15 @@ ScreenManager:
                 
                 CustomRecycleView:
                     id: rv
+                    bar_color: 0, 0, 0, 0
 
                 MDIconButton:
                     icon: "plus"
                     md_bg_color: app.theme_cls.primary_color
                     pos_hint: {'center_x': 0.5, 'center_y': 0.1}
-                    icon_size: '32sp'
+                    icon_size: '40sp'
+                    # style: 'tonal'
+                    # elevation: 12
                     on_release: app.generate_codes()
         
             # MDBottomNavigationItem:

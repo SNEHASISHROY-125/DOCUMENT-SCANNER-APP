@@ -236,6 +236,18 @@ class QRWidget(Widget):
     def set_dark_color(self, color):
         self.dark_color = color
 
+# from kivy.graphics.svg import Svg
+# from kivy.uix.widget import Widget
+
+# class MyWidget(Widget):
+#     def __init__(self, **kwargs):
+#         super().__init__(**kwargs)
+#         with self.canvas:
+#             self.box = MDBoxLayout()
+#             self.svg = Svg("barcode/assets/svg.svg")  # Add SVG to canvas
+#             self.box.add_widget(self.svg)
+#             self.box.size = self.size
+
 class MyApp(MDApp):
 
     uris = []
@@ -326,6 +338,7 @@ class MyApp(MDApp):
                 type="custom",
                 width_offset=dp(30),
                 content_cls=Builder.load_file('kv/quick_create.kv'),
+                size_hint=(0.8, 0.4),
                 buttons=[
                     MDFlatButton(
                         text="CANCEL",
@@ -492,6 +505,7 @@ class MyApp(MDApp):
                 ],
             )
             self.permissions_grant_dialog.children[0].children[-1].halign="center"
+        self.permissions_grant_dialog.content_cls.ids.grant_permissions_label.text = "QR Genie needs to access your files, in order to share QR Codes with other apps."
         self.permissions_grant_dialog.open()
 
     def show_info_micro(self):
@@ -515,42 +529,25 @@ class MyApp(MDApp):
             self.micro_info_dialog.children[0].children[-1].text_color = [130/255, 247/255, 27/255, 0.8]  # Red color
         self.micro_info_dialog.open()
         
-    def _add_infoA(self):
-        self.animated_info_dialog = MDDialog(
-            title="",
-            type="custom",
-            size_hint= (0.8, 0.4),
-            # width_offset=dp(30),
-            content_cls=Builder.load_file('kv/animated_qr.kv'),
-            buttons=[
-                MDFlatButton(
-                    text="OK",
-                    on_release=lambda x: self.animated_info_dialog.dismiss()
-                ),
-            ],
-        )
-        self.animated_info_dialog.open()
-    def _ww(self):
-        Clock.schedule_once(lambda dt: self._add_infoA(), 0.1)
+    
     def show_info_animated(self):
         if not self.animated_info_dialog:
-            Thread(target=self._ww).start()
-            return
-            # self.animated_info_dialog = MDDialog(
-            #         title="",
-            #         type="custom",
-            #         size_hint= (0.8, 0.4),
-            #         # width_offset=dp(30),
-            #         content_cls=Builder.load_file('kv/animated_qr.kv'),
-            #         buttons=[
-            #             MDFlatButton(
-            #                 text="OK",
-            #                 on_release=lambda x: self.animated_info_dialog.dismiss()
-            #             ),
-            #         ],
-            #     )
-            # Clock.schedule_once(lambda dt: setattr(self,"animated_info_dialog", d),0.1)
-        # self.animated_info_dialog = d
+            self.animated_info_dialog = MDDialog(
+                title="",
+                type="custom",
+                size_hint= (0.8, 0.4),
+                # width_offset=dp(30),
+                content_cls=Builder.load_file('kv/animated_qr.kv'),
+                buttons=[
+                    MDFlatButton(
+                        text="OK",
+                        on_release=lambda x: self.animated_info_dialog.dismiss()
+                    ),
+                ],
+                on_dismiss=lambda x: setattr(self.animated_info_dialog.content_cls.children[-1] , "source" , "assets/image_placeholder.png"),
+            )
+            
+        Clock.schedule_once(lambda dt: setattr(self.animated_info_dialog.content_cls.children[-1] , "source" , "assets/animated_qr.gif"), 0.5)
         self.animated_info_dialog.open()
 
     def refresh_files(self) -> list:
@@ -802,7 +799,37 @@ class MyApp(MDApp):
                     from android.permissions import request_permissions, Permission , check_permission
                     if not check_permission(Permission.READ_EXTERNAL_STORAGE) or not check_permission(Permission.WRITE_EXTERNAL_STORAGE):
                         Clock.schedule_once(lambda dt: self.toast("Please Grant Pemitions\nto pick a file from Internal\nstorage"),0.3)
-                        request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
+                        # request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
+                        if not self.permissions_grant_dialog:
+                            def req_():
+                                if platform == 'android':
+                                    self.permissions_grant_dialog.dismiss()
+                                    #
+                                    from android.permissions import request_permissions, Permission , check_permission
+                                    if not check_permission(Permission.READ_EXTERNAL_STORAGE) or not check_permission(Permission.WRITE_EXTERNAL_STORAGE):
+                                        request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
+                            self.permissions_grant_dialog = MDDialog(
+                            title="Please allow Permissions",
+                            # text="Please Grant Permissions to access your files",
+                            type="custom",
+                            size_hint=(0.8, 0.4),
+                            auto_dismiss=False,
+                            # width_offset=dp(30),
+                            content_cls=Builder.load_file('kv/grant_permissions.kv'),
+                            buttons=[
+                                MDFlatButton(
+                                    text="CANCEL",
+                                    on_release=lambda x: self.permissions_grant_dialog.dismiss()
+                                ),
+                                MDFlatButton(
+                                    text="GRANT",
+                                    on_release=lambda x: req_()
+                                ),
+                            ],
+                        )
+                        self.permissions_grant_dialog.children[0].children[-1].halign="center"
+                        self.permissions_grant_dialog.content_cls.ids.grant_permissions_label.text = "QR Genie needs to access your files, in order to pick images for QR Code generation like logos,background image, etc."
+                        self.permissions_grant_dialog.open()
                         return
             if platform == 'android':
                 if not hasattr(self, 'chooser'):
@@ -811,7 +838,39 @@ class MyApp(MDApp):
                 # let the user choose a file
                 self.chooser.choose_content('image/*') 
 
-            else: print('Not supported on this platform')
+            else: 
+                print('Not supported on this platform')
+
+                if not self.permissions_grant_dialog:
+                    def req_():
+                        if platform == 'android':
+                            self.permissions_grant_dialog.dismiss()
+                            #
+                            from android.permissions import request_permissions, Permission , check_permission
+                            if not check_permission(Permission.READ_EXTERNAL_STORAGE) or not check_permission(Permission.WRITE_EXTERNAL_STORAGE):
+                                request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
+                    self.permissions_grant_dialog = MDDialog(
+                    title="Please allow Permissions",
+                    # text="Please Grant Permissions to access your files",
+                    type="custom",
+                    size_hint=(0.8, 0.4),
+                    auto_dismiss=False,
+                    # width_offset=dp(30),
+                    content_cls=Builder.load_file('kv/grant_permissions.kv'),
+                    buttons=[
+                        MDFlatButton(
+                            text="CANCEL",
+                            on_release=lambda x: self.permissions_grant_dialog.dismiss()
+                        ),
+                        MDFlatButton(
+                            text="GRANT",
+                            on_release=lambda x: req_()
+                        ),
+                    ],
+                )
+                self.permissions_grant_dialog.children[0].children[-1].halign="center"
+                self.permissions_grant_dialog.content_cls.ids.grant_permissions_label.text = "QR Genie needs to access your files, in order to pick images for QR Code generation like logos,background image, etc."
+                self.permissions_grant_dialog.open()
                 # self._chooser_callback([])
         except Exception as e:
             print(e)

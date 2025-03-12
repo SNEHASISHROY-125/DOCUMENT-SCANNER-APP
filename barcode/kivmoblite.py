@@ -39,7 +39,7 @@ if platform == "android":
         )
 
 
-class Admob():
+class Admob:
     def __init__(self, adId=test):
         self.ad = adId
         self.ad_size = 0

@@ -40,6 +40,7 @@ ScreenManager:
                 MDLabel:
                     id : top_app_bar_label
                     text: 'QR Genie'
+                    font_name: "fonts/SupriaSans.otf"
                     halign: 'center'
                     pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                     bold: True
@@ -63,12 +64,14 @@ ScreenManager:
                             # icon_size: '25sp'
                             pos_hint: {'center_y': 0.5}
                             disabled: True
+                            # on_release: print(top_app_bar_coins_label.x,top_app_bar_coins_label.y)
                             # size_hint_x: 0.5
                             # size_hint: None, None
                             # size: dp(20), dp(20)
                         MDLabel:
                             id : top_app_bar_coins_label
-                            text: '100+'
+                            text: ""
+                            font_name: "fonts/SupriaSans.otf"
                             halign: 'left'
                             bold: True
                             color: 'blue'
@@ -77,6 +80,19 @@ ScreenManager:
                             pos_hint: {'center_x': 0.1}
                             # weight: dp(20)
                             # font_size: "20sp"
+                        FloatLayout:
+                            MDSpinner:
+                                id: top_app_bar_coins_label_spinner
+                                size_hint: None, None
+                                size: dp(25), dp(25)
+                                opacity: 0.7
+                                color: 0.15, 0.35, 0.8, 0.97
+                                # pos_hint: top_app_bar_coins_label.pos_hint
+                                x: top_app_bar_coins_label.x
+                                y: top_app_bar_coins_label.y + dp(10)
+                                active: True if not top_app_bar_coins_label.text else False
+                                # color: 0, 0, 0, 1
+                                # duration: 1
             
         MDBottomNavigation:
             id: bottom_nav
@@ -152,10 +168,11 @@ ScreenManager:
                             keep_ratio: True
                     MDLabel:
                         text: 'Comming Soon'
+                        font_name: "fonts/SupriaSans.otf"
                         pos_hint: {'center_x': 0.5, 'center_y': 0.2}
                         font_size: '30sp'
                         halign: 'center'
-                        bold: True
+                        # bold: True
                         theme_text_color: "Custom"
                         text_color: app.theme_cls.primary_color
 

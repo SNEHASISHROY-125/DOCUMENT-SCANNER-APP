@@ -273,7 +273,7 @@ def generate_custom_qr_icon(data, description='', output='', scale=10, light=(25
             draw = ImageDraw.Draw(new_img)
             max_width = width - 20  # Maximum width for the text box
             font_size = 15  # Starting font size
-            font_path = "fonts/Arial.ttf"  # Path to the TrueType font file
+            font_path = "fonts/SupriaSans.otf"  # Path to the TrueType font file
 
             # Adjust font size to fit within the text box
             while True:
@@ -396,6 +396,58 @@ def generate_animated_qr_code(data:str,file_:str) -> str:
     except Exception as e:
         print('The file is not a valid image.\n' "error", e)
         return
+    
+def mod_generate_animated_qr_code(data: str, file_: str) -> str:
+    qrcode = segno.make(data, error='h')
+    if not os.path.isfile(file_):
+        print('File not found')
+        return
+
+    try:
+        with Image.open(file_) as img:
+            image_format = img.format.lower()
+            output = file_ if file_.endswith(".gif") else f"{file_}.{image_format}"
+    except Exception as e:
+        print(f"Invalid image: {e}")
+        return
+
+    # Let segno.to_artistic() handle non-GIFs
+    if image_format != 'gif':
+        qrcode.to_artistic(background=file_, target=output, scale=10)
+        return output
+
+    # For GIFs: Process with minimal conversions
+    qrcode.to_artistic(background=file_, target=output, scale=10)
+
+    with Image.open(output) as gif:
+        frames = []
+        original_palette = gif.getpalette()
+        transparency_index = gif.info.get('transparency', None)
+
+        for frame in ImageSequence.Iterator(gif):
+            # Preserve original palette and transparency
+            frame = frame.copy()
+            if frame.mode == "P":
+                frame.info['transparency'] = transparency_index
+                frame.putpalette(original_palette)
+
+            frames.append(frame)
+
+        # Save with original palette/transparency
+        frames[0].save(
+            output,
+            save_all=True,
+            append_images=frames[1:],
+            loop=0,
+            duration=gif.info.get("duration", 100),
+            transparency=transparency_index,
+            palette=original_palette,
+            disposal=2
+        )
+
+    qr_lives_at = f'src/qr/animated_qr_code_{get_time()}.gif'
+    shutil.copyfile(output, qr_lives_at)
+    return qr_lives_at
 
 def _verify_and_fetch_from_url(url:str) -> list[str,str]:
     '''
@@ -484,10 +536,159 @@ def _verify_and_fetch_from_url(url:str) -> list[str,str]:
     else:
         print('no a file')
 
-# Example usage
-# generate_custom_qr("https://example.com", "Example QR Code", output='segno_custom_qr_code.png', scale=10, border=1, dark=(217, 37, 217,), icon_name='cog')
-# Example usage
-# generate_custom_qr("https://example.com", "Example QR Code", output='XXsegno_custom_qr_code.png', scale=10, border=1, dark=(217, 37, 217,),)
-# Example usage
-# generate_custom_qr_icon("example.com",micro=True, description="https://example.com/id=pol?9800", output='IXsegno_custom_qr_code.png', scale=10, border=1, dark=(217, 37, 217,), icon_name='twitch', info_text_color=(36, 56, 237,), info_text_back_color="WHITE", icon_color=(238, 252, 40,))
 
+import segno
+from xml.etree.ElementTree import Element, SubElement, tostring
+from io import BytesIO
+def qr_matrix_to_svg(matrix, module_size=10, dark_color='#bbcbd3', light_color='#ffffff'):
+    """
+    Convert a Segno QR matrix to an SVG string.
+    
+    :param matrix: The QR code matrix from Segno (tuple or list of rows)
+    :param module_size: Size of each module in pixels
+    :param dark_color: Color of dark modules
+    :param light_color: Color of light modules
+    :return: SVG as string
+    """
+    # Use the length of the matrix to determine size.
+    size = len(matrix) * module_size
+    svg = Element('svg', 
+                  xmlns="http://www.w3.org/2000/svg",
+                  version="1.1",
+                  width=str(size),
+                  height=str(size),
+                  viewBox=f"0 0 {size} {size}")
+    
+    # Add background
+    SubElement(svg, 'rect',
+               x='0', y='0',
+               width=str(size),
+               height=str(size),
+               fill=light_color)
+    
+    # Add QR modules
+    for y in range(len(matrix)):
+        for x in range(len(matrix[y])):
+            if matrix[y][x]:
+                SubElement(svg, 'rect',
+                           x=str(x * module_size),
+                           y=str(y * module_size),
+                           width=str(module_size),
+                           height=str(module_size),
+                           fill=dark_color)
+    
+    # Convert to string with XML declaration
+    xml_declaration = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    svg_str = tostring(svg, encoding='unicode', short_empty_elements=False)
+    return xml_declaration + svg_str 
+
+
+import segno
+import xml.etree.ElementTree as ET
+import base64 ,  re
+from io import BytesIO
+from xml.dom import minidom
+# import cairosvg
+import cairosvg
+
+def generate_qr_with_frame(data:str,original_svg_frame_path:str,) -> list[str,str]:
+    '''returms --> [svg_path:str,png_path:str]'''
+    ET.register_namespace("", "http://www.w3.org/2000/svg")
+    ET.register_namespace("xlink", "http://www.w3.org/1999/xlink")
+
+    save_as_svg  =  f'svg/qr_code_{get_time()}.svg'
+    save_as_png = f'src/qr/qr_code_{get_time()}.png'
+    # Parse the original SVG template
+    # tree[any] = None
+    # root[any] = None
+    tree = ET.parse(original_svg_frame_path)
+    root = tree.getroot()
+
+    # Find the QR group (first group with a nested SVG)
+    for qr_group in root.findall(".//{http://www.w3.org/2000/svg}g"):
+        if qr_group.find("{http://www.w3.org/2000/svg}svg") is not None:
+            style_elem = qr_group.find(".//{http://www.w3.org/2000/svg}style")
+            if style_elem is not None and style_elem.text:
+                style_text = style_elem.text
+                m = re.search(r"\.dot\-color\s*\{\s*fill:\s*(#[0-9a-fA-F]+)", style_text)
+                if m:
+                    dot_color = m.group(1)
+                    print("dot-color:", dot_color)
+                else:
+                    print("'.dot-color' rule not found in style.")
+            break
+    else:
+        raise ValueError("QR group not found in SVG template")
+
+    # Find the inner SVG container and clear its content (except style/defs)
+    inner_svg = qr_group.find("{http://www.w3.org/2000/svg}svg")
+    if inner_svg is not None:
+        for elem in list(inner_svg):
+            if elem.tag not in ['{http://www.w3.org/2000/svg}style', 
+                                '{http://www.w3.org/2000/svg}defs']:
+                inner_svg.remove(elem)
+    else:
+        raise ValueError("Inner SVG container not found in QR group.")
+        # jmjdjjdjjdhhhfhfhuuur  
+
+    # Create QR code
+    # text = "The inner QR appears small because the QR code elements—generated by Segno at its default module size—are being inserted into an inner SVG that’s been forced to a 300×300 viewBox and dimensions. In other words"  # No more than 2000 characters
+    
+    # matrix[] = None
+    matrix = segno.make(data).matrix
+
+    # Generate SVG for the QR code using the provided function.
+    # Calculate module size based on text length.
+    base_size = 500 / len(data)
+    base_size = max(5.5, min(10, base_size))
+    svg_content = qr_matrix_to_svg(matrix, module_size=base_size, dark_color=dot_color)
+    
+    # Load the generated QR SVG content into an ElementTree.
+    
+    buffer = BytesIO()
+    buffer.write(svg_content.encode('utf-8'))
+    buffer.seek(0)
+    external_tree = ET.parse(buffer)
+    external_root = external_tree.getroot()
+
+    # Determine the size of the generated QR graphic.
+    matrix_module_count = len(matrix)
+    qr_total_size = matrix_module_count * base_size
+    # Compute margin to center the QR in a 300x300 area.
+    margin = (300 - qr_total_size) / 2
+
+    # Create a group to wrap the generated QR modules and apply centering transform.
+    center_group = ET.Element("{http://www.w3.org/2000/svg}g")
+    center_group.set("transform", f"translate({margin},{margin})")
+    
+    # Append all children of the external QR SVG to the center group.
+    for elem in external_root:
+        if elem.tag not in ['{http://www.w3.org/2000/svg}title',
+                            '{http://www.w3.org/2000/svg}desc']:
+            center_group.append(elem)
+    
+    # Append the centered QR code group into the inner SVG container.
+    inner_svg.append(center_group)
+
+    # Set the inner SVG attributes to maintain a fixed 300x300 area.
+    inner_svg.attrib['width'] = '300'
+    inner_svg.attrib['height'] = '300'
+    inner_svg.attrib['viewBox'] = '0 0 300 300'
+
+    # Pretty-format and save the modified SVG.
+    xml_str = ET.tostring(root, encoding='unicode')
+    pretty_xml = minidom.parseString(xml_str).toprettyxml(indent="  ")
+    clean_xml = '\n'.join(line for line in pretty_xml.split('\n') if line.strip())
+    
+    with open(save_as_svg, 'w') as f:
+        f.write(clean_xml)
+
+    # Convert SVG to PNG
+    cairosvg.svg2png(url=save_as_svg, write_to=save_as_png,dpi=300,scale=10)
+
+    return [save_as_svg, save_as_png]
+
+
+# print("starting")
+# _ = mod_generate_animated_qr_code('https://example.com','200w.gif')
+# print(_)

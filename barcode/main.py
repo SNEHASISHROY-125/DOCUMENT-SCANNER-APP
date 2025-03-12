@@ -37,17 +37,23 @@ from kivy.config import Config
 Config.set('kivy', 'pause_on_minimize', '1')
 Window.softinput_mode = "below_target"
 
+# font
+# from kivy.core.text import LabelBase
+
+# LabelBase.register(name="Default", fn_regular="fonts/Marigny-Bold.ttf")
+
 # test
 if platform != 'android':
     Window.size = (360, 1080) 
 # ADs
-if platform == 'android':
-    from kivmoblite import Admob
+# if platform == 'android':
+    # from kivmoblite import Admob
 
 import codegen
 
 if platform == 'android':
-    from android import mActivity
+    import unityads  as UnityAds
+    # from android import mActivity
     from androidstorage4kivymod import SharedStorage, Chooser, ShareSheet
 
 # create ./src folder
@@ -59,6 +65,10 @@ if not os.path.exists('./src'):
 # create ./tmp_cache folder
 if not os.path.exists('./tmp_cache'):
     os.makedirs('./tmp_cache')    # tmp_cache | temp files to be deleted on_pre_leave
+
+# create ./svg folder
+if not os.path.exists('./svg'):
+    os.makedirs('./svg')    # svg | temp files to be deleted on_pre_leave
 
 ad_ids = {
         "appId": "ca-app-pub-2987282397801743~7612741649",
@@ -252,6 +262,10 @@ class MyApp(MDApp):
 
     uris = []
 
+    # fonts
+    font = "fonts/SupriaSans.otf"
+    font_italic = "fonts/SupriaSans-Italic.otf"
+
     # app-internals
     dialog = None
     del_dialog = None
@@ -261,6 +275,8 @@ class MyApp(MDApp):
     file_to_delete = StringProperty("")
     show_line = BooleanProperty(False)
     fit_display_source = StringProperty("assets/color-picker-qr.png")
+    # ads
+    ad_loaded = BooleanProperty(False)
     ### features | animated qr
     gen_btn = BooleanProperty(False)
     web_sync_btn = ... # IconButton TODO to be added
@@ -269,7 +285,7 @@ class MyApp(MDApp):
     tempUrlFile = StringProperty()
     tempUrlFile_ext = StringProperty()
     Preview_modal_source = StringProperty("src/qr/Ranimated_qr_code_20250120122818.gif")
-    #
+    # features | icon_qr
     icon_brush_color = ListProperty([1,.4,.2, 1])
     footer_brush_color = ListProperty([1,.4,.2, 1])
     qr_bg_dark_color = ListProperty([0, 0, 0, 1])
@@ -278,7 +294,10 @@ class MyApp(MDApp):
     qr_code_description = StringProperty("fudemy.me")
     qr_code_icon = StringProperty("qrcode")
     qr_code_color = ListProperty([0, 0, 0, 1])
+    qr_frame_ids = ListProperty([])
     qr_code_micro = BooleanProperty(False)
+    qr_code_frame = BooleanProperty(False)      # if frame is selected in selectableImage
+    qr_code_frame_path = StringProperty("")
     qr_save_dir = StringProperty("src/qr")
 
     def __init__(self, **kwargs):
@@ -311,9 +330,9 @@ class MyApp(MDApp):
         self.theme_cls.primary_hue = "A200"
 
         #
-        for root, dirs, files in os.walk('./src'):
-            for file in files:
-                file_list.append(os.path.join(root, file))
+        # for root, dirs, files in os.walk('./src'):
+        #     for file in files:
+        #         file_list.append(os.path.join(root, file))
 
         print(file_list)
     
@@ -342,14 +361,17 @@ class MyApp(MDApp):
                 buttons=[
                     MDFlatButton(
                         text="CANCEL",
+                        font_name=self.font_italic,
                         on_release=lambda x: self.dialog.dismiss()
                     ),
                     MDFlatButton(
                         text="ADD",
+                        font_name=self.font_italic,
                         on_release=lambda x: self.generate_barcode(self.dialog.content_cls.ids.barcode_textfield.text) if not self.dialog.content_cls.ids.dialog_switch.active else self.generate_qr_code(self.dialog.content_cls.ids.barcode_textfield.text)
                     ),
                 ],
             )
+            self.dialog.children[0].children[-1].font_name=self.font_italic
         self.dialog.open()
 
     def on_switch_active(self, instance, value):
@@ -357,7 +379,7 @@ class MyApp(MDApp):
         # set 
         # self.dialog.children[0].children[-1].text = "Create QR code" if value else "Create Barcode"
         print(f"Switch is now {'on' if value else 'off'}")
-        print(self.dialog.children[0].children)
+        # print(self.dialog.children[0].children[-1].text)
 
     def on_tab_switch(self, instance_tabs, instance_tab, instance_tab_label,):
         screen = self.root.get_screen('home')
@@ -384,12 +406,7 @@ class MyApp(MDApp):
             print('Not supported on this platform')
 
     def build(self):
-        # ADs
-        if platform == 'android':
-            self.ads = Admob(ad_ids)
-            self.ads.new_banner(position = [0,0], color = "#ffffff", margin = 0) # Adaptive banner
-            self.ads.request_banner()
-            self.ads.hide_banner()
+        
         #
         self.theme_cls.theme_style = 'Dark' 
         self.set_bars_colors()
@@ -401,15 +418,56 @@ class MyApp(MDApp):
             self.ads.new_interstitial()  # Initialize interstitial
             self.ads.request_interstitial()
             self.ads.show_interstitial()
-        self.refresh_files()
         # self.fps_monitor_start()
         #
-        self._init_loading_widget()
+        Clock.schedule_once(lambda dt: self._init_loading_widget(),1)
         #
+        
+        self._on_start_lazy_load()
+        # self.db:dict = db_.fetch_data()
         # if platform == 'android':
         #     from android.permissions import request_permissions, Permission
         #     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
+    
+    def _on_start_lazy_load(self):
+        #
+        # self.refresh_files()
+        import db
+        self.db_:db.DB = db.DB()
+        #
+        self.coin_label =  self.root.get_screen("home").ids.top_app_bar_coins_label
+        Clock.schedule_once(lambda dt: setattr(self.coin_label,"text",str(self.db_.fetch_data()["coins"])), 7)
+        #
+        # ADs
+        if platform == 'android':
+            # self.ads = Admob(ad_ids)
+            # self.ads.new_banner(position = [0,0], color = "#ffffff", margin = 0) # Adaptive banner
+            # self.ads.request_banner()
+            # self.ads.hide_banner()
+            self.ad_manager = UnityAds.UnityAdManager(test_mode=False)
+            self.ad_manager.set_ad_manager(self.ad_manager)  # Set the ad manager
+            self.ad_manager.set_reward_callback(self.reward_user)  # Set reward callback
+            self.ad_manager.set_load_state_callback(self.on_ad_loaded)
 
+            self.ad_manager.load_ad()
+
+    def reward_user(self):
+        print("🎉 Rewarding user with 10 coins!")
+
+        _ = self.db_.fetch_data()
+        self.db_.update_db(
+            user_id=_[0],
+            theme=_[1],
+            coins=_[2]+10,
+            email=_[3],
+        )
+        _ = None
+        self.coin_label.text = str(self.db_.fetch_data()["coins"])
+    
+    def on_ad_loaded(self, state):
+        # print("Ad loaded")
+        self.ad_loaded = state
+    
     def on_pause(self):
         return True
     
@@ -420,6 +478,10 @@ class MyApp(MDApp):
 
     def on_stop(self):
         pass
+
+    def on_pre_leave(self, *args):
+        # 
+        self.db_.close_db()
 
     def Abtn_reverse(self):
         ref.animate_back()
@@ -547,8 +609,8 @@ class MyApp(MDApp):
                 on_dismiss=lambda x: setattr(self.animated_info_dialog.content_cls.children[-1] , "source" , "assets/image_placeholder.png"),
             )
             
-        Clock.schedule_once(lambda dt: setattr(self.animated_info_dialog.content_cls.children[-1] , "source" , "assets/animated_qr.gif"), 0.5)
         self.animated_info_dialog.open()
+        Clock.schedule_once(lambda dt: setattr(self.animated_info_dialog.content_cls.children[-1] , "source" , "assets/animated_qr.gif"), 0.5)
 
     def refresh_files(self) -> list:
         file_list = []
@@ -972,35 +1034,28 @@ class MyApp(MDApp):
     def _transition_to(self, screen_name,t):
         Clock.schedule_once(lambda x: setattr(self.root,"current" , screen_name),t)
     def generate_qr_code_icon(self):
-        # check micro and data len <11
-        if not self.qr_code_data:
-            self.toast("QR code data cannot be empty")
-            Clock.schedule_once(lambda dt : self.Abtn_reverse(), 1)
-            return
-        elif self.qr_code_micro and len(self.qr_code_data) > 11:
-            print(self.qr_code_data)
-            self.toast("Micro QR code can only contain 10 characters")
-            Clock.schedule_once(lambda dt : self.Abtn_reverse(), 1)
-            return
         # _modal.open()
         def _gen():
             # import  test2 as t2# generate_custom_qr_icon
             import time
             time.sleep(1)
-            _ = codegen.generate_custom_qr_icon(
-                self.qr_code_data,
-                self.qr_code_description,
-                output='',
-                scale=10,
-                light= self.get_rgb(self.qr_bg_light_color), #(255, 255, 255),
-                dark= self.get_rgb(self.qr_bg_dark_color) , #tuple(self.qr_code_color),
-                border=1,
-                icon_name=self.qr_code_icon,
-                info_text_color=self.get_rgb(self.footer_brush_color),
-                # info_text_back_color="WHITE",
-                icon_color=self.get_rgb(self.icon_brush_color),
-                micro=self.qr_code_micro
-            )
+            if not self.qr_code_frame:
+                _ = codegen.generate_custom_qr_icon(
+                    self.qr_code_data,
+                    self.qr_code_description,
+                    output='',
+                    scale=10,
+                    light= self.get_rgb(self.qr_bg_light_color), #(255, 255, 255),
+                    dark= self.get_rgb(self.qr_bg_dark_color) , #tuple(self.qr_code_color),
+                    border=1,
+                    icon_name=self.qr_code_icon,
+                    info_text_color=self.get_rgb(self.footer_brush_color),
+                    # info_text_back_color="WHITE",
+                    icon_color=self.get_rgb(self.icon_brush_color),
+                    micro=self.qr_code_micro
+                )
+            else:
+                _ = codegen.generate_qr_with_frame(data=self.qr_code_data,original_svg_frame_path=os.path.splitext(self.qr_code_frame_path)[0] + ".svg")
             if not _:
                 Clock.schedule_once(lambda dt: self.toast("❌ Couldn't generate QR code"),0.2)
                 Clock.schedule_once(lambda dt: _modal.dismiss(),0.2)
@@ -1015,11 +1070,26 @@ class MyApp(MDApp):
             self.root.get_screen('home').ids.rv.data.insert(
                 0,
                 {
-                'image_source': _,
+                'image_source': _ if isinstance(_,str) else _[1],
                 }
             )
             _ = None
         # Clock.schedule_once(lambda x: threading.Thread(target=_gen).start(), 0.1)
+        print(self.qr_code_frame,'\n',self.qr_code_frame_path)
+        # check micro and data len <11
+        if not self.qr_code_data:
+            self.toast("QR code data cannot be empty")
+            Clock.schedule_once(lambda dt : self.Abtn_reverse(), 1)
+            return
+        elif self.qr_code_micro and len(self.qr_code_data) > 11:
+            print(self.qr_code_data)
+            self.toast("Micro QR code can only contain 10 characters")
+            Clock.schedule_once(lambda dt : self.Abtn_reverse(), 1)
+            return
+        elif self.qr_code_frame and not self.qr_code_frame_path:
+            self.toast("Please select a frame image")
+            Clock.schedule_once(lambda dt : self.Abtn_reverse(), 1)
+            return
         threading.Thread(target=_gen).start()
 
 

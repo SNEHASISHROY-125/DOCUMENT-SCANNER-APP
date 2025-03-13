@@ -277,6 +277,10 @@ class MyApp(MDApp):
     fit_display_source = StringProperty("assets/color-picker-qr.png")
     # ads
     ad_loaded = BooleanProperty(False)
+    show_ad_dialog = None
+    # prices | coins | nornal qr = 10 | animated qr = 20
+    PRICE_NORMAL_QR = 10
+    PRICE_ANIMATED_QR = 20
     ### features | animated qr
     gen_btn = BooleanProperty(False)
     web_sync_btn = ... # IconButton TODO to be added
@@ -404,7 +408,11 @@ class MyApp(MDApp):
             self.ads.hide_banner()
         else:
             print('Not supported on this platform')
-
+    def _show_rewarded_ad(self):
+        if platform == 'android':
+            self.ad_manager.show_ad()
+        else:
+            print('Not supported on this platform')
     def build(self):
         
         #
@@ -413,11 +421,11 @@ class MyApp(MDApp):
         return Builder.load_file('kv/app.kv')
     
     def on_start(self):
-        if platform == 'android':
+        if platform == 'android': ...
             # self.ads.banner_pos("top")
-            self.ads.new_interstitial()  # Initialize interstitial
-            self.ads.request_interstitial()
-            self.ads.show_interstitial()
+            # self.ads.new_interstitial()  # Initialize interstitial
+            # self.ads.request_interstitial()
+            # self.ads.show_interstitial()
         # self.fps_monitor_start()
         #
         Clock.schedule_once(lambda dt: self._init_loading_widget(),1)
@@ -436,7 +444,7 @@ class MyApp(MDApp):
         self.db_:db.DB = db.DB()
         #
         self.coin_label =  self.root.get_screen("home").ids.top_app_bar_coins_label
-        Clock.schedule_once(lambda dt: setattr(self.coin_label,"text",str(self.db_.fetch_data()["coins"])), 7)
+        Clock.schedule_once(lambda dt: setattr(self.coin_label,"text",str(self.db_.fetch_data()["coins"])), 4)
         #
         # ADs
         if platform == 'android':
@@ -484,7 +492,10 @@ class MyApp(MDApp):
         self.db_.close_db()
 
     def Abtn_reverse(self):
-        ref.animate_back()
+        try:
+            ref.animate_back() 
+        except NameError:
+            print("NameError: name 'ref' is not defined")
     # def on_pre_enter(self, *args):
     #     # bind back button
     #     self.bind(on_keyboard=self.quit_app)
@@ -733,6 +744,34 @@ class MyApp(MDApp):
         instance.opacity = 0
         Animation(opacity=0, duration=0.1).start(instance)
         
+    def check_coin_balance(self , price:int=10):
+        '''
+        if the user has enough coins to generate a QR code return True
+        '''
+        if int(self.coin_label.text) - price  >=10:
+            return True
+        else:
+            False
+    
+    def show_ad(self):
+        def _diss(args):
+            self.show_ad_dialog.dismiss()
+            Clock.schedule_once(lambda dt: self.Abtn_reverse(), 1)
+        if not self.show_ad_dialog:
+                self.show_ad_dialog = MDDialog(
+                    title="You ran out of credits",
+                    type="custom",
+                    width_offset=dp(30),
+                    content_cls=Builder.load_file('kv/watchAd.kv'),
+                    buttons=[
+                        MDFlatButton(
+                            text="CANCEL",
+                            on_release= _diss
+                        ),
+                    ],
+                )
+                self.show_ad_dialog.bind(on_dismiss=lambda *args: self.Abtn_reverse())
+        self.show_ad_dialog.open()
 
     def generate_qr_code(self , code:str):
         #
@@ -755,7 +794,24 @@ class MyApp(MDApp):
             Clock.schedule_once(lambda  dt :self.toast("QR code generated Sucessfuly"),.2)
             print('qr',code)
         #
-        Thread(target=_gen).start()
+        # check price
+        if self.check_coin_balance(price=self.PRICE_NORMAL_QR):
+            Thread(target=_gen).start()
+            # deduct coins
+            _ = self.db_.fetch_data()
+            self.db_.update_db(
+                user_id=_["user_id"],
+                theme=_["theme"],
+                coins=_["coins"] - self.PRICE_NORMAL_QR,
+                email=_["email"], 
+            )
+            _ = None
+            self.coin_label.text = str(self.db_.fetch_data()["coins"])
+        else:
+            Clock.schedule_once(lambda dt :self.toast("Not enough coins to generate QR code"),.2)
+            Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
+            # show dialog | watch an Ad
+            self.show_ad()
 
     def _verify_and_fetch_from_url(self, url:str):
 
@@ -823,7 +879,25 @@ class MyApp(MDApp):
             finally:
                 Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
                 Clock.schedule_once(lambda dt : self.Abtn_reverse(), 1)
-        Thread(target=_gen).start()
+        
+        # check price
+        if self.check_coin_balance(price=self.PRICE_ANIMATED_QR):
+            Thread(target=_gen).start()
+            # deduct coins
+            _ = self.db_.fetch_data()
+            self.db_.update_db(
+                user_id=_["user_id"],
+                theme=_["theme"],
+                coins=_["coins"] - self.PRICE_ANIMATED_QR,
+                email=_["email"], 
+            )
+            _ = None
+            self.coin_label.text = str(self.db_.fetch_data()["coins"])
+        else:
+            Clock.schedule_once(lambda dt :self.toast("Not enough coins to generate QR code"),.2)
+            Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
+            # show dialog | watch an Ad
+            self.show_ad()
         print(self.tempUrlFile,os.path.isfile(self.tempUrlFile))
 
     def generate_barcode(self,code:str):
@@ -853,7 +927,24 @@ class MyApp(MDApp):
             Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
             Clock.schedule_once(lambda dt: self.toast("Barcode generated Sucessfuly"),.2)
         #
-        Thread(target=_gen).start()
+        # check price
+        if self.check_coin_balance(price=self.PRICE_NORMAL_QR):
+            Thread(target=_gen).start()
+            # deduct coins
+            _ = self.db_.fetch_data()
+            self.db_.update_db(
+                user_id=_["user_id"],
+                theme=_["theme"],
+                coins=_["coins"] - self.PRICE_NORMAL_QR,
+                email=_["email"], 
+            )
+            _ = None
+            self.coin_label.text = str(self.db_.fetch_data()["coins"])
+        else:
+            Clock.schedule_once(lambda dt :self.toast("Not enough coins to generate QR code"),.2)
+            Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
+            # show dialog | watch an Ad
+            self.show_ad()
 
     def Pick_A_File(self):
         try:
@@ -1090,7 +1181,24 @@ class MyApp(MDApp):
             self.toast("Please select a frame image")
             Clock.schedule_once(lambda dt : self.Abtn_reverse(), 1)
             return
-        threading.Thread(target=_gen).start()
+       # check price
+        if self.check_coin_balance(price=self.PRICE_ANIMATED_QR):
+            Thread(target=_gen).start()
+            # deduct coins
+            _ = self.db_.fetch_data()
+            self.db_.update_db(
+                user_id=_["user_id"],
+                theme=_["theme"],
+                coins=_["coins"] - self.PRICE_ANIMATED_QR,
+                email=_["email"], 
+            )
+            _ = None
+            self.coin_label.text = str(self.db_.fetch_data()["coins"])
+        else:
+            Clock.schedule_once(lambda dt :self.toast("Not enough coins to generate QR code"),.2)
+            Clock.schedule_once(lambda dt : _modal.dismiss() ,.2)
+            # show dialog | watch an Ad
+            self.show_ad()
 
 
 _app = MyApp()

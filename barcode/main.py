@@ -397,17 +397,17 @@ class MyApp(MDApp):
             screen.ids.top_app_bar_label.text = "All Services"
         print(instance_tab.name)
     
-    def _show_baner(self):
-        if platform == 'android':
-            self.ads.banner_pos("top")
+    def _show_baner(self): ...
+        # if platform == 'android':
+        #     self.ads.banner_pos("top")
             # self.ads.show_banner()
-        else:
-            print('Not supported on this platform')
-    def _hide_baner(self):
-        if platform == 'android':
-            self.ads.hide_banner()
-        else:
-            print('Not supported on this platform')
+        # else:
+        #     print('Not supported on this platform')
+    def _hide_baner(self):...
+        # if platform == 'android':
+        #     self.ads.hide_banner()
+        # else:
+        #     print('Not supported on this platform')
     def _show_rewarded_ad(self):
         if platform == 'android':
             self.ad_manager.show_ad()
@@ -1146,6 +1146,9 @@ class MyApp(MDApp):
                     micro=self.qr_code_micro
                 )
             else:
+                print(self.qr_code_frame_path)
+                # Clock.schedule_once(lambda dt : self.Abtn_reverse(), 1)
+                # return
                 _ = codegen.generate_qr_with_frame(data=self.qr_code_data,original_svg_frame_path=os.path.splitext(self.qr_code_frame_path)[0] + ".svg")
             if not _:
                 Clock.schedule_once(lambda dt: self.toast("❌ Couldn't generate QR code"),0.2)
@@ -1157,7 +1160,7 @@ class MyApp(MDApp):
             Clock.schedule_once(lambda dt : _modal.dismiss() ,0.1)
             Clock.schedule_once(lambda dt: self.toast("QRcode generated Sucessfuly"),0.2)
             Clock.schedule_once(lambda dt : self.Abtn_reverse(), 1)
-             # refresh the files
+            # refresh the files
             self.root.get_screen('home').ids.rv.data.insert(
                 0,
                 {

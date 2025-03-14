@@ -588,8 +588,11 @@ import xml.etree.ElementTree as ET
 import base64 ,  re
 from io import BytesIO
 from xml.dom import minidom
+import requests
 # import cairosvg
-import cairosvg
+# import cairosvg
+
+
 
 def generate_qr_with_frame(data:str,original_svg_frame_path:str,) -> list[str,str]:
     '''returms --> [svg_path:str,png_path:str]'''
@@ -684,8 +687,15 @@ def generate_qr_with_frame(data:str,original_svg_frame_path:str,) -> list[str,st
         f.write(clean_xml)
 
     # Convert SVG to PNG
-    cairosvg.svg2png(url=save_as_svg, write_to=save_as_png,dpi=300,scale=10)
-
+    files = {'file': open(save_as_svg, 'rb')}
+    response = requests.post('https://image-convert.duckdns.org/upload', files=files)
+    _url =response.json()["info"]
+    # get the png file
+    png_response = requests.get(_url, allow_redirects=True)
+    with open(save_as_png, 'wb') as f:
+        f.write(png_response.content)
+    # cairosvg.svg2png(url=save_as_svg, write_to=save_as_png,dpi=300,scale=10)
+    print(save_as_png)
     return [save_as_svg, save_as_png]
 
 

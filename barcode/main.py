@@ -456,33 +456,41 @@ class MyApp(MDApp):
             self.ad_manager.set_ad_manager(self.ad_manager)  # Set the ad manager
             self.ad_manager.set_reward_callback(self.reward_user)  # Set reward callback
             self.ad_manager.set_load_state_callback(self.on_ad_loaded)
+            self.ad_manager.set_load_state_failed(self.on_ad_load_failed)
 
             self.ad_manager.load_ad()
 
+    @mainthread
     def reward_user(self):
         print("🎉 Rewarding user with 10 coins!")
+        import db
         db_ = db.DB()
         _ = db_.fetch_data()
         self.db_.update_db(
-            user_id=_[0],
-            theme=_[1],
-            coins=_[2]+10,
-            email=_[3],
+            user_id=_["user_id"],
+            theme=_["theme"],
+            coins=_["coins"]+10,
+            email=_["email"],
         )
         _ = None
         db_.close_db()
         try:
-            self.coin_label.text = str(self.db_.fetch_data()["coins"])
+            # self.coin_label.text = str(self.db_.fetch_data()["coins"])
+            Clock.schedule_once(lambda dt: setattr(self.coin_label,"text",str(int(self.coin_label.text)+10)) , 4)
         except Exception as e:
             print(e)
-            self._reward_user()
+            # self._reward_user()
             
-    def _reward_user(self):
-        Clock.schedule_once(lambda dt: setattr(self.coin_label,"text",str(int(self.coin_label.text)+10)) , 2)
+    # def _reward_user(self):
+    #     Clock.schedule_once(lambda dt: setattr(self.coin_label,"text",str(int(self.coin_label.text)+10)) , 2)
     
-    def on_ad_loaded(self, state,*args):
-        print(args)
-        self.ad_loaded = state
+    def on_ad_loaded(self):
+        # print(args)
+        self.ad_loaded = True
+
+    def on_ad_load_failed(self):
+        print("Ad load failed")
+        self.ad_loaded = False
     
     def on_pause(self):
         return True

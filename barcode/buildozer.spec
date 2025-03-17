@@ -13,7 +13,7 @@ package.domain = io.github.snehasishroy_125.qrgenie
 source.dir = ./DOCUMENT-SCANNER-APP/barcode
 
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py,png,jpg,kv,atlas,ttf,json,gif,otf
+source.include_exts = py,png,jpg,kv,atlas,ttf,json,gif,otf,svg
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png
@@ -29,7 +29,7 @@ source.include_exts = py,png,jpg,kv,atlas,ttf,json,gif,otf
 #source.exclude_patterns = license,images/*/*.jpg
 
 # (str) Application versioning (method 1)
-version = 1.2.0
+version = 1.2.7
 
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]

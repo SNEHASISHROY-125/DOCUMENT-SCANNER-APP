@@ -688,7 +688,7 @@ def generate_qr_with_frame(data:str,original_svg_frame_path:str,) -> list[str,st
 
     # Convert SVG to PNG
     files = {'file': open(save_as_svg, 'rb')}
-    response = requests.post('https://image-convert.duckdns.org/upload', files=files)
+    response = requests.post('https://image-convert.duckdns.org/upload', files=files,verify=False) # self-signed ssl cert issue
     _url =response.json()["info"]
     # get the png file
     png_response = requests.get(_url, allow_redirects=True)

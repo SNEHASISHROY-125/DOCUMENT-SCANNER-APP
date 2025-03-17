@@ -13,18 +13,20 @@ class UnityAdsLoadListener(PythonJavaClass):
     __javainterfaces__ = ['com.unity3d.ads.IUnityAdsLoadListener']
     __javacontext__ = 'app'
 
-    def __init__(self,load_state_callback):
+    def __init__(self,load_state_callback, load_state_failed):
         super().__init__()
         self.load_state_ = load_state_callback  # Store the callback function
+        self.load_state_failed_ = load_state_failed
 
     @java_method('(Ljava/lang/String;)V')
     def onUnityAdsAdLoaded(self, placementId):
-        self.load_state_(state=True)
+        self.load_state_()
         print(f"✅ Ad {placementId} loaded successfully!")
 
     @java_method('(Ljava/lang/String;Lcom/unity3d/ads/UnityAds$UnityAdsLoadError;Ljava/lang/String;)V')
     def onUnityAdsFailedToLoad(self, placementId, error, message):
-        self.load_state_(state=False)
+        # self.load_state_(state=False)
+        self.load_state_failed_()
         print(f"❌ Failed to load ad {placementId}: {error}, {message}")
 
 
@@ -82,9 +84,12 @@ class UnityAdManager:
     def set_load_state_callback(self, callback):
         self.load_state_callback = callback
 
+    def set_load_state_failed(self, callback):
+        self.load_state_failed = callback
+
     def load_ad(self):
         if self.load_state_callback:
-            self.load_listener = UnityAdsLoadListener(self.load_state_callback)
+            self.load_listener = UnityAdsLoadListener(self.load_state_callback, self.load_state_failed)
             UnityAds.load(self.ad_unit_id, self.load_listener)
             print("🔄 Loading the ad...")
         else:

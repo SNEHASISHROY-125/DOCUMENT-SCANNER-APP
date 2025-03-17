@@ -484,12 +484,12 @@ class MyApp(MDApp):
     # def _reward_user(self):
     #     Clock.schedule_once(lambda dt: setattr(self.coin_label,"text",str(int(self.coin_label.text)+10)) , 2)
     
-    def on_ad_loaded(self):
-        # print(args)
+    def on_ad_loaded(self, *args):
+        print("ad loaded",args, "state : ",self.ad_loaded)
         self.ad_loaded = True
 
-    def on_ad_load_failed(self):
-        print("Ad load failed")
+    def on_ad_load_failed(self , *args):
+        print("Ad load failed" , args , "state: ",self.ad_loaded) 
         self.ad_loaded = False
     
     def on_pause(self):

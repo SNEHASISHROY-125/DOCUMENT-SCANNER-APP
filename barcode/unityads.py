@@ -19,12 +19,12 @@ class UnityAdsLoadListener(PythonJavaClass):
 
     @java_method('(Ljava/lang/String;)V')
     def onUnityAdsAdLoaded(self, placementId):
-        self.load_state_(True)
+        self.load_state_(state=True)
         print(f"✅ Ad {placementId} loaded successfully!")
 
     @java_method('(Ljava/lang/String;Lcom/unity3d/ads/UnityAds$UnityAdsLoadError;Ljava/lang/String;)V')
     def onUnityAdsFailedToLoad(self, placementId, error, message):
-        self.load_state_(False)
+        self.load_state_(state=False)
         print(f"❌ Failed to load ad {placementId}: {error}, {message}")
 
 

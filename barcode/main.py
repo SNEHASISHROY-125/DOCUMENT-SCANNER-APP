@@ -24,7 +24,7 @@ from typing import Union
 import threading 
 from datetime import datetime
 #
-
+import db
 from kivy.animation import Animation
 # from kivymd.uix.button.button
 from kivy.uix.modalview import ModalView
@@ -428,10 +428,11 @@ class MyApp(MDApp):
             # self.ads.show_interstitial()
         # self.fps_monitor_start()
         #
-        Clock.schedule_once(lambda dt: self._init_loading_widget(),1)
+        self._init_loading_widget()
+        Clock.schedule_once(lambda dt:self._on_start_lazy_load() ,1)
         #
         
-        self._on_start_lazy_load()
+        # self._on_start_lazy_load()
         # self.db:dict = db_.fetch_data()
         # if platform == 'android':
         #     from android.permissions import request_permissions, Permission
@@ -440,7 +441,6 @@ class MyApp(MDApp):
     def _on_start_lazy_load(self):
         #
         # self.refresh_files()
-        import db
         self.db_:db.DB = db.DB()
         #
         self.coin_label =  self.root.get_screen("home").ids.top_app_bar_coins_label
@@ -461,8 +461,8 @@ class MyApp(MDApp):
 
     def reward_user(self):
         print("🎉 Rewarding user with 10 coins!")
-
-        _ = self.db_.fetch_data()
+        db_ = db.DB()
+        _ = db_.fetch_data()
         self.db_.update_db(
             user_id=_[0],
             theme=_[1],
@@ -470,10 +470,18 @@ class MyApp(MDApp):
             email=_[3],
         )
         _ = None
-        self.coin_label.text = str(self.db_.fetch_data()["coins"])
+        db_.close_db()
+        try:
+            self.coin_label.text = str(self.db_.fetch_data()["coins"])
+        except Exception as e:
+            print(e)
+            self._reward_user()
+            
+    def _reward_user(self):
+        Clock.schedule_once(lambda dt: setattr(self.coin_label,"text",str(int(self.coin_label.text)+10)) , 2)
     
-    def on_ad_loaded(self, state):
-        # print("Ad loaded")
+    def on_ad_loaded(self, state,*args):
+        print(args)
         self.ad_loaded = state
     
     def on_pause(self):
